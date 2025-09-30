@@ -1,0 +1,35 @@
+﻿# Visual Studio
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Log files
+*.log
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+/packages/*
+# except build/
+!/packages/build/
+
+# Ignore bin, obj, and publish folders
+bin/
+obj/
+publish/
+
+# Generated files
+*.Generated.cs
+*.Designer.cs
+GeneratedFiles/
+*.dbmdl
+*.dbproj
+*.jfm
+*.pyc
+
+# Config files
+appsettings.local.json
+appsettings.Development.json

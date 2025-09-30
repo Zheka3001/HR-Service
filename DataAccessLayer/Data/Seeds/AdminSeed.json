@@ -1,0 +1,11 @@
+[
+  {
+    "FistName": "Admin",
+    "LastName": "Default",
+    "MiddleName": null,
+    "Login": "admin",
+    "Password": "admin123",
+    "Role": "Admin"
+  }
+]
+
