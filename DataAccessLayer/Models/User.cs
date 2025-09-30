@@ -23,8 +23,7 @@ namespace DataAccessLayer.Models
 
         public byte[] PasswordSalt { get; set; }
 
-        public string? RefreshToken { get; set; }
-
-        public DateTime? RefreshTokenExpiryTime { get; set; }
+        // navigation properties
+        public ICollection<RefreshToken> RefreshTokens { get; set; }
     }
 }

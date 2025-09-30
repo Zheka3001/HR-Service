@@ -11,6 +11,8 @@ namespace DataAccessLayer.Repositories
     {
         Task<User?> GetByEmailAsync(string email);
 
+        Task<User?> GetByIdAsync(int id);
+
         Task<bool> UserExistsAsync(string email);
 
         Task AddUserAsync(User user);

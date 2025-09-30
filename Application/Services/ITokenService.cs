@@ -11,10 +11,8 @@ namespace Application.Services
 {
     public interface ITokenService
     {
-        AuthTokens GenerateTokens(User user, DateTime refreshTokenExpiryTime);
+        Task<AuthTokens> GenerateTokensAsync(User user);
 
-        ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
-
-        string GenerateRefreshToken();
+        Task<AuthTokens> RefreshTokensAsync(string accessToken, string refreshToken);
     }
 }

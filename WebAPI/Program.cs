@@ -2,12 +2,12 @@
 using Application.Services;
 using Configuration.Installers;
 using DataAccessLayer.Data;
-using DataAccessLayer.Data.Seeds;
 using DataAccessLayer.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using WebAPI.Extensions;
 
 namespace HRService
 {
@@ -27,12 +27,11 @@ namespace HRService
 
             // Register Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             // Register Services
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
-
-            builder.Services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 
             // Add JWT configuration
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -58,6 +57,9 @@ namespace HRService
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            // Seed database
+            app.SeedDatabase();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

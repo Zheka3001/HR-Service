@@ -15,13 +15,11 @@ namespace Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ITokenService _tokenService;
-        private readonly IConfiguration _configuration;
 
-        public UserService(IUserRepository userRepository, ITokenService tokenService, IConfiguration configuration)
+        public UserService(IUserRepository userRepository, ITokenService tokenService)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
-            _configuration = configuration;
         }
 
         public async Task<AuthTokens> AuthenticateAsync(string email, string password)
@@ -42,11 +40,8 @@ namespace Application.Services
                 if (computedHash[i] != user.PasswordHash[i]) throw new UnauthorizedAccessException("Invalid login or password");
             }
 
-            var tokenRefreshExpireTime = GetRefreshTokenLifeTime();
-            var tokens = _tokenService.GenerateTokens(user, tokenRefreshExpireTime);
+            var tokens = await _tokenService.GenerateTokensAsync(user);
 
-            user.RefreshToken = tokens.RefreshToken;
-            user.RefreshTokenExpiryTime = tokenRefreshExpireTime;
             await _userRepository.UpdateAsync(user);
 
             return tokens;
@@ -69,12 +64,6 @@ namespace Application.Services
                 PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password)),
                 PasswordSalt = hmac.Key
             });
-        }
-
-        private DateTime GetRefreshTokenLifeTime()
-        {
-            int expiryDays = int.Parse(_configuration["Jwt:RefreshTokenExpirationDays"]);
-            return DateTime.UtcNow.AddDays(expiryDays);
         }
     }
 }

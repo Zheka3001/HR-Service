@@ -26,7 +26,15 @@ namespace DataAccessLayer.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            return await _context.Users.SingleOrDefaultAsync(x => x.Login.Equals(email, StringComparison.OrdinalIgnoreCase));
+            return await _context.Users
+                .SingleOrDefaultAsync(x => x.Login.Equals(email, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public async Task<User?> GetByIdAsync(int id)
+        {
+            return await _context.Users
+                .Include(x => x.RefreshTokens)
+                .SingleOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task UpdateAsync(User user)
