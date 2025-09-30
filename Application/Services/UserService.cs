@@ -1,4 +1,5 @@
 ﻿using Application.Models;
+using AutoMapper;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories;
 using Microsoft.Extensions.Configuration;
@@ -15,11 +16,13 @@ namespace Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ITokenService _tokenService;
+        private readonly IMapper _mapper;
 
-        public UserService(IUserRepository userRepository, ITokenService tokenService)
+        public UserService(IUserRepository userRepository, ITokenService tokenService, IMapper mapper)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
+            _mapper = mapper;
         }
 
         public async Task<AuthTokens> AuthenticateAsync(string email, string password)
@@ -54,16 +57,7 @@ namespace Application.Services
 
             using var hmac = new HMACSHA512();
 
-            await _userRepository.AddUserAsync(new User()
-            {
-                Role = Role.HR,
-                Login = user.Login,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                MiddleName = user.MiddleName,
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password)),
-                PasswordSalt = hmac.Key
-            });
+            await _userRepository.AddUserAsync(_mapper.Map<User>(user));
         }
     }
 }
