@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Configuration.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Configuration.Installers
@@ -8,7 +9,8 @@ namespace Configuration.Installers
         public static IServiceCollection ConfigureAppOptions(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions();
-            //Add some options here
+            services
+                .Configure<JwtTokenOptions>(configuration.GetSection(JwtTokenOptions.Name));
 
             return services;
         }

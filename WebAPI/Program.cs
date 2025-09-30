@@ -1,6 +1,7 @@
 
 using Application.Services;
 using Configuration.Installers;
+using Configuration.Options;
 using DataAccessLayer.Data;
 using DataAccessLayer.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,6 +17,9 @@ namespace HRService
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var jwtTokenOptions = new JwtTokenOptions();
+            builder.Configuration.GetSection(JwtTokenOptions.Name).Bind(jwtTokenOptions);
 
             builder.Services.ConfigureAppOptions(builder.Configuration);
 
@@ -43,9 +47,9 @@ namespace HRService
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                        ValidAudience = builder.Configuration["Jwt:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                        ValidIssuer = jwtTokenOptions.Issuer,
+                        ValidAudience = jwtTokenOptions.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtTokenOptions.Key))
                     };
                 });
 
