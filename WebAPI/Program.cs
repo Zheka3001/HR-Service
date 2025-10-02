@@ -1,8 +1,10 @@
 
+using Application.Installers;
 using Application.Services;
 using Configuration.Installers;
 using Configuration.Options;
 using DataAccessLayer.Data;
+using DataAccessLayer.Installers;
 using DataAccessLayer.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -29,13 +31,8 @@ namespace HRService
                 ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection")),
                 mySqlOptions => mySqlOptions.EnableStringComparisonTranslations()));
 
-            // Register Repositories
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-
-            // Register Services
-            builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.InstallDataAccessLayerServices();
+            builder.Services.InstallApplicationLayerServices(builder.Configuration);
 
             // Add JWT configuration
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
