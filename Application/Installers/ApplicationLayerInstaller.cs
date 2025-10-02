@@ -1,4 +1,6 @@
 ﻿using Application.Services;
+using Application.Validators;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -15,6 +17,19 @@ namespace Application.Installers
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
+
+            services.AddValidation();
+        }
+
+        private static void AddValidation(this IServiceCollection services)
+        {
+            services.AddScoped<IValidationService, ValidationService>();
+
+            services.AddScoped<IValidator, LoginCredentialsValidator>();
+            services.AddScoped<IValidator, RegiterUserValiator>();
+
+            services.AddScoped(
+                provider => new Lazy<IEnumerable<IValidator>>(provider.GetServices<IValidator>));
         }
     }
 }

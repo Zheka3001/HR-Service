@@ -9,6 +9,7 @@ namespace WebAPI.Controllers.Profiles
         public UserProfile()
         {
             CreateMap<RegisterUserDto, RegisterUser>();
+            CreateMap<LoginRequestDto, LoginRequest>();
         }
     }
 }

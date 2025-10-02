@@ -1,6 +1,7 @@
-﻿using Application.Services;
+﻿using Application.Models;
+using Application.Services;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.DTOs;
 
@@ -11,17 +12,19 @@ namespace WebAPI.Controllers
     {
         private readonly IUserService _userService;
         private readonly ITokenService _tokenService;
+        private readonly IMapper _mapper;
 
-        public AuthController(IUserService userService, ITokenService tokenService)
+        public AuthController(IUserService userService, ITokenService tokenService, IMapper mapper)
         {
             _userService = userService;
             _tokenService = tokenService;
+            _mapper = mapper;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var tokens = await _userService.AuthenticateAsync(request.Email,  request.Password);
+            var tokens = await _userService.AuthenticateAsync(_mapper.Map<LoginRequest>(request));
 
             return Ok(tokens);
         }

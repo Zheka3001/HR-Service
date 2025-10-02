@@ -12,7 +12,9 @@ namespace WebAPI.Extensions
             using var scope = app.ApplicationServices.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DataContext>();
 
-            if (context.Users.Any(u => u.Login == "admin")) return app;
+            var adminLogin = "admin@test.com";
+
+            if (context.Users.Any(u => u.Login == adminLogin)) return app;
 
             using var hmac = new HMACSHA512();
 
@@ -22,7 +24,7 @@ namespace WebAPI.Extensions
                 FirstName = "Admin",
                 LastName = "Default",
                 MiddleName = null,
-                Login = "admin",
+                Login = adminLogin,
                 PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd")),
                 PasswordSalt = hmac.Key,
             };

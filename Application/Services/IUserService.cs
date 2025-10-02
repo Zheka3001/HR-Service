@@ -10,7 +10,7 @@ namespace Application.Services
 {
     public interface IUserService
     {
-        Task<AuthTokens> AuthenticateAsync(string email, string password);
+        Task<AuthTokens> AuthenticateAsync(LoginRequest request);
         Task RegisterUserAsync(RegisterUser user);
     }
 }
