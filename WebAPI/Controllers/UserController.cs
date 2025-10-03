@@ -3,6 +3,7 @@ using Application.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebAPI.Constants;
 using WebAPI.Controllers;
 using WebAPI.DTOs;
 
@@ -19,7 +20,7 @@ namespace HRService.Controllers
             _mapper = mapper;
         }
 
-        [Authorize]
+        [Authorize(Roles = UserRoleConstants.Admin)]
         [HttpPost("register")]
         public async Task<ActionResult> RegisterHRAsync(RegisterUserDto userDto)
         {
