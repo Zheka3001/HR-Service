@@ -23,7 +23,10 @@ namespace DataAccessLayer.Models
 
         public byte[] PasswordSalt { get; set; }
 
-        // navigation properties
+        // Relationship
         public ICollection<RefreshToken> RefreshTokens { get; set; }
+
+        public int? WorkGroupId { get; set; }
+        public WorkGroup? WorkGroup { get; set; }
     }
 }

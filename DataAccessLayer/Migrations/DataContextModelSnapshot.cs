@@ -22,6 +22,97 @@ namespace DataAccessLayer.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("DataAccessLayer.Models.Applicant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicantInfoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastUpdateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("WorkGroupId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("WorkSchedule")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicantInfoId");
+
+                    b.HasIndex("WorkGroupId");
+
+                    b.ToTable("applicants", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.ApplicantInfo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("MiddleName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("applicant_infos", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.Employee", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicantInfoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("HireDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicantInfoId");
+
+                    b.ToTable("employees", (string)null);
+                });
+
             modelBuilder.Entity("DataAccessLayer.Models.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -50,7 +141,36 @@ namespace DataAccessLayer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("refresh_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.SocialNetwork", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicantInfoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicantInfoId");
+
+                    b.ToTable("social_networks", (string)null);
                 });
 
             modelBuilder.Entity("DataAccessLayer.Models.User", b =>
@@ -88,12 +208,64 @@ namespace DataAccessLayer.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int?>("WorkGroupId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Login")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.HasIndex("WorkGroupId");
+
+                    b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.WorkGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("work_groups", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.Applicant", b =>
+                {
+                    b.HasOne("DataAccessLayer.Models.ApplicantInfo", "ApplicantInfo")
+                        .WithMany()
+                        .HasForeignKey("ApplicantInfoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessLayer.Models.WorkGroup", "WorkGroup")
+                        .WithMany("Applicants")
+                        .HasForeignKey("WorkGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicantInfo");
+
+                    b.Navigation("WorkGroup");
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.Employee", b =>
+                {
+                    b.HasOne("DataAccessLayer.Models.ApplicantInfo", "ApplicantInfo")
+                        .WithMany()
+                        .HasForeignKey("ApplicantInfoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicantInfo");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Models.RefreshToken", b =>
@@ -107,9 +279,41 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DataAccessLayer.Models.SocialNetwork", b =>
+                {
+                    b.HasOne("DataAccessLayer.Models.ApplicantInfo", "ApplicantInfo")
+                        .WithMany("SocialNetworks")
+                        .HasForeignKey("ApplicantInfoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicantInfo");
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.User", b =>
+                {
+                    b.HasOne("DataAccessLayer.Models.WorkGroup", "WorkGroup")
+                        .WithMany("Users")
+                        .HasForeignKey("WorkGroupId");
+
+                    b.Navigation("WorkGroup");
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.ApplicantInfo", b =>
+                {
+                    b.Navigation("SocialNetworks");
+                });
+
             modelBuilder.Entity("DataAccessLayer.Models.User", b =>
                 {
                     b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.WorkGroup", b =>
+                {
+                    b.Navigation("Applicants");
+
+                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }
