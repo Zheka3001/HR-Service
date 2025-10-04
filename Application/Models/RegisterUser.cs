@@ -15,6 +15,8 @@ namespace Application.Models
 
         public string? MiddleName { get; set; }
 
+        public int WorkGroupId { get; set; }
+
         public string Login { get; set; }
 
         public string Password { get; set; }

@@ -20,8 +20,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task InsertTokenAsync(RefreshToken token)
         {
-            _context.RefreshTokens.Add(token);
-            await _context.SaveChangesAsync();
+            await _context.RefreshTokens.AddAsync(token);
         }
 
         public async Task<IEnumerable<RefreshToken>> GetRefreshTokensByUserIdAsync(int userId)
@@ -29,9 +28,8 @@ namespace DataAccessLayer.Repositories
             return await _context.RefreshTokens.Where(token => token.UserId == userId).ToListAsync();
         }
 
-        public async Task UpdateRefreshToken(RefreshToken token)
+        public async Task SaveChangesAsync()
         {
-            _context.RefreshTokens.Update(token);
             await _context.SaveChangesAsync();
         }
     }

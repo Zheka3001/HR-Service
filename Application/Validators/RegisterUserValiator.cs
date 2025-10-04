@@ -1,17 +1,12 @@
 ﻿using Application.Models;
 using Application.Validators.Rules;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Validators
 {
-    public class RegiterUserValiator : AbstractValidator<RegisterUser>
+    public class RegisterUserValiator : AbstractValidator<RegisterUser>
     {
-        public RegiterUserValiator()
+        public RegisterUserValiator()
         {
             RuleFor(o => o.Login).ValidateEmail();
 
@@ -30,6 +25,10 @@ namespace Application.Validators
             RuleFor(o => o.MiddleName)
                 .MinimumLength(RegisterUserValidationRules.MiddleNameMinLength).WithMessage($"Password must be at least {RegisterUserValidationRules.MiddleNameMinLength} characters long")
                 .MaximumLength(RegisterUserValidationRules.MiddleNameMaxLength).WithMessage($"Password cannot exceed {RegisterUserValidationRules.MiddleNameMaxLength} characters");
+
+            RuleFor(o => o.WorkGroupId)
+                .Must(workGroupId => workGroupId > 0)
+                .WithMessage("Work group id must be valid positive integer");
         }
     }
 }

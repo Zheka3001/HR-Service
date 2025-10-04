@@ -12,6 +12,8 @@ namespace WebAPI.DTOs
 
         public string? MiddleName { get; set; }
 
+        public int WorkGroupId { get; set; }
+
         [Required]
         public string Login { get; set; }
 

@@ -41,6 +41,8 @@ namespace Application.Services
                 UserId = user.Id,
             });
 
+            await _refreshTokenRepository.SaveChangesAsync();
+
             return new AuthTokens
             {
                 AccessToken = accessToken,
@@ -65,7 +67,7 @@ namespace Application.Services
             }
 
             var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null) return null;
+            if (user == null) throw new ArgumentException("Access or refresh token are invalid.");
 
             var savedRefreshToken = user.RefreshTokens?.FirstOrDefault(token => token.Token == refreshToken);
 
@@ -75,7 +77,7 @@ namespace Application.Services
             }
 
             savedRefreshToken.IsUsed = true;
-            await _refreshTokenRepository.UpdateRefreshToken(savedRefreshToken);
+            await _refreshTokenRepository.SaveChangesAsync();
 
             return await GenerateTokensAsync(user);
         }

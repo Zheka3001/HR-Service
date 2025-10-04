@@ -9,22 +9,32 @@ using WebAPI.DTOs;
 
 namespace HRService.Controllers
 {
-    public class UserController : BaseApiController
+    [Authorize(Roles = UserRoleConstants.Admin)]
+    public class AdminController : BaseApiController
     {
         private readonly IUserService _userService;
+        private readonly IWorkGroupService _workGroupService;
         private readonly IMapper _mapper;
 
-        public UserController(IUserService userService, IMapper mapper)
+        public AdminController(IUserService userService, IMapper mapper, IWorkGroupService workGroupService)
         {
             _userService = userService;
             _mapper = mapper;
+            _workGroupService = workGroupService;
         }
 
-        [Authorize(Roles = UserRoleConstants.Admin)]
-        [HttpPost("register")]
+        [HttpPost("register-hr")]
         public async Task<ActionResult> RegisterHRAsync(RegisterUserDto userDto)
         {
             await _userService.RegisterUserAsync(_mapper.Map<RegisterUser>(userDto));
+
+            return Ok();
+        }
+
+        [HttpPost("create-work-group")]
+        public async Task<IActionResult> InsertWorkGroup(CreateWorkGroupDto request)
+        {
+            await _workGroupService.InsertAsync(_mapper.Map<CreateWorkGroup>(request));
 
             return Ok();
         }

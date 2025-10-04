@@ -14,6 +14,7 @@ namespace DataAccessLayer.Installers
         {
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IWorkGroupRepository, WorkGroupRepository>();
         }
     }
 }

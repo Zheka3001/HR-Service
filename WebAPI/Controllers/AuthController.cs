@@ -10,21 +10,19 @@ namespace WebAPI.Controllers
     [AllowAnonymous]
     public class AuthController : BaseApiController
     {
-        private readonly IUserService _userService;
-        private readonly ITokenService _tokenService;
+        private readonly IAuthService _authService;
         private readonly IMapper _mapper;
 
-        public AuthController(IUserService userService, ITokenService tokenService, IMapper mapper)
+        public AuthController(IMapper mapper, IAuthService authService)
         {
-            _userService = userService;
-            _tokenService = tokenService;
             _mapper = mapper;
+            _authService = authService;
         }
 
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var tokens = await _userService.AuthenticateAsync(_mapper.Map<LoginRequest>(request));
+            var tokens = await _authService.AuthenticateAsync(_mapper.Map<LoginRequest>(request));
 
             return Ok(tokens);
         }
@@ -32,7 +30,7 @@ namespace WebAPI.Controllers
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequestDto request)
         {
-            var tokens = await _tokenService.RefreshTokensAsync(request.ExpiredAccessToken, request.RefreshToken);
+            var tokens = await _authService.RefreshTokensAsync(request.ExpiredAccessToken, request.RefreshToken);
 
             return Ok(tokens);
         }

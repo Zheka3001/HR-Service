@@ -20,8 +20,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task AddUserAsync(User user)
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            await _context.Users.AddAsync(user);
         }
 
         public async Task<User?> GetByEmailAsync(string email)
@@ -37,15 +36,8 @@ namespace DataAccessLayer.Repositories
                 .SingleOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task UpdateAsync(User user)
+        public async Task SaveChangesAsync()
         {
-            if (_context.Entry(user).State == EntityState.Detached)
-            {
-                _context.Users.Attach(user);
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
             await _context.SaveChangesAsync();
         }
 

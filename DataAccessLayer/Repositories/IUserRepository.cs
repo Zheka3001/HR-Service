@@ -17,6 +17,6 @@ namespace DataAccessLayer.Repositories
 
         Task AddUserAsync(User user);
 
-        Task UpdateAsync(User user);
+        Task SaveChangesAsync();
     }
 }

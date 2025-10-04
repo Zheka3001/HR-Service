@@ -3,11 +3,6 @@ using Application.Validators;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Installers
 {
@@ -17,6 +12,8 @@ namespace Application.Installers
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IWorkGroupService, WorkGroupService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             services.AddValidation();
         }
@@ -27,6 +24,7 @@ namespace Application.Installers
 
             services.AddScoped<IValidator, LoginCredentialsValidator>();
             services.AddScoped<IValidator, RegiterUserValiator>();
+            services.AddScoped<IValidator, CreateWorkGroupValidator>();
 
             services.AddScoped(
                 provider => new Lazy<IEnumerable<IValidator>>(provider.GetServices<IValidator>));

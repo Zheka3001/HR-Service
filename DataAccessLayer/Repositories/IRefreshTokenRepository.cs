@@ -13,6 +13,6 @@ namespace DataAccessLayer.Repositories
 
         Task<IEnumerable<RefreshToken>> GetRefreshTokensByUserIdAsync(int userId);
 
-        Task UpdateRefreshToken(RefreshToken token);
+        Task SaveChangesAsync();
     }
 }
