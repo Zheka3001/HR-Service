@@ -1,5 +1,5 @@
 using Application.Models;
-using Application.Services;
+using Application.Services.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,12 +31,28 @@ namespace HRService.Controllers
             return Ok();
         }
 
-        [HttpPost("create-work-group")]
+        [HttpPost("work-group")]
         public async Task<IActionResult> InsertWorkGroup(CreateWorkGroupDto request)
         {
             await _workGroupService.InsertAsync(_mapper.Map<CreateWorkGroup>(request));
 
             return Ok();
+        }
+
+        [HttpPut("work-group/{workGroupId}/hrs")]
+        public async Task<IActionResult> MoveHrsToWorkGroupAsync(int workGroupId, [FromBody] MoveHrsRequestDto request)
+        {
+            await _workGroupService.MoveHrsAsync(new MoveHrsRequest
+                {
+                    WorkGroupId = workGroupId,
+                    UserIds = request.UserIds
+                });
+
+            return Ok(new
+            {
+                success = true,
+                message = "HRs and their applicants have been successfuly moved."
+            });
         }
     }
 }

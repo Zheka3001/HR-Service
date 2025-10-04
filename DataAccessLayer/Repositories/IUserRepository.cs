@@ -13,6 +13,8 @@ namespace DataAccessLayer.Repositories
 
         Task<User?> GetByIdAsync(int id);
 
+        Task<List<User>> GetByIdsAsync(IEnumerable<int> userIds);
+
         Task<bool> UserExistsAsync(string email);
 
         Task AddUserAsync(User user);

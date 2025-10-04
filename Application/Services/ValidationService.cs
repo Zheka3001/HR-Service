@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Application.Services.Interfaces;
+using FluentValidation;
 using FluentValidation.Results;
 
 namespace Application.Services

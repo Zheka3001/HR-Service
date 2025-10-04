@@ -1,4 +1,5 @@
 ﻿using DataAccessLayer.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace DataAccessLayer.Repositories
 {
@@ -9,5 +10,7 @@ namespace DataAccessLayer.Repositories
         Task<bool> WorkGroupExistsAsync(int workGroupId);
 
         Task SaveChangesAsync();
+
+        IDbContextTransaction BeginTransaction();
     }
 }

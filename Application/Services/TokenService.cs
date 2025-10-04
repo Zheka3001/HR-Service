@@ -1,8 +1,8 @@
 ﻿using Application.Models;
+using Application.Services.Interfaces;
 using Configuration.Options;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -19,13 +19,19 @@ namespace Application.Services
         private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
         private readonly IUserRepository _userRepository;
         private readonly JwtTokenOptions _jwtTokenOptions;
+        private readonly IPriciplesFromTokenProvider _priciplesFromTokenProvider;
 
-        public TokenService(IRefreshTokenRepository refreshTokenRepository, IUserRepository userRepository, IOptions<JwtTokenOptions> jwtTokenOptions)
+        public TokenService(IRefreshTokenRepository refreshTokenRepository,
+            IUserRepository userRepository,
+            IOptions<JwtTokenOptions> jwtTokenOptions,
+            JwtSecurityTokenHandler tokenHandler,
+            IPriciplesFromTokenProvider priciplesFromTokenProvider)
         {
             _refreshTokenRepository = refreshTokenRepository;
-            _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            _jwtSecurityTokenHandler = tokenHandler;
             _userRepository = userRepository;
             _jwtTokenOptions = jwtTokenOptions.Value;
+            _priciplesFromTokenProvider = priciplesFromTokenProvider;
         }
 
         public async Task<AuthTokens> GenerateTokensAsync(User user)
@@ -54,7 +60,7 @@ namespace Application.Services
 
         public async Task<AuthTokens> RefreshTokensAsync(string accessToken, string refreshToken)
         {
-            var principal = GetPrincipalFromExpiredToken(accessToken);
+            var principal = _priciplesFromTokenProvider.GetPrincipalFromExpiredToken(accessToken);
             if (principal == null)
             {
                 throw new ArgumentException("Access or refresh token are invalid.");
@@ -77,7 +83,6 @@ namespace Application.Services
             }
 
             savedRefreshToken.IsUsed = true;
-            await _refreshTokenRepository.SaveChangesAsync();
 
             return await GenerateTokensAsync(user);
         }
@@ -128,37 +133,6 @@ namespace Application.Services
         {
             int expiryMinutes = _jwtTokenOptions.AccessTokenExpirationMinutes;
             return DateTime.UtcNow.AddMinutes(expiryMinutes);
-        }
-
-        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
-        {
-            try
-            {
-                var tokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateAudience = true,
-                    ValidateIssuer = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = _jwtTokenOptions.Issuer,
-                    ValidAudience = _jwtTokenOptions.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtTokenOptions.Key)),
-                    ValidateLifetime = false,
-                };
-
-                var principal = _jwtSecurityTokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
-
-                if (securityToken is JwtSecurityToken jwtSecurityToken 
-                    && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return principal;
-                }
-            }
-            catch
-            {
-                return null;
-            }
-
-            return null;
         }
     }
 }

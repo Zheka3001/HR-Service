@@ -1,6 +1,7 @@
 ﻿using DataAccessLayer.Data;
 using DataAccessLayer.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace DataAccessLayer.Repositories
 {
@@ -26,6 +27,11 @@ namespace DataAccessLayer.Repositories
         public async Task<bool> WorkGroupExistsAsync(int workGroupId)
         {
             return await _context.WorkGroups.AnyAsync(w => w.Id == workGroupId);
+        }
+
+        public IDbContextTransaction BeginTransaction()
+        {
+            return _context.Database.BeginTransaction();
         }
     }
 }

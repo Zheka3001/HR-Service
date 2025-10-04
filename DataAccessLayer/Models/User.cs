@@ -28,5 +28,7 @@ namespace DataAccessLayer.Models
 
         public int? WorkGroupId { get; set; }
         public WorkGroup? WorkGroup { get; set; }
+
+        public ICollection<Applicant> CreatedApplicants { get; set; }
     }
 }

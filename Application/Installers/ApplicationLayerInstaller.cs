@@ -1,8 +1,10 @@
 ﻿using Application.Services;
+using Application.Services.Interfaces;
 using Application.Validators;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Application.Installers
 {
@@ -14,6 +16,9 @@ namespace Application.Installers
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IWorkGroupService, WorkGroupService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IPriciplesFromTokenProvider, PriciplesFromTokenProvider>();
+
+            services.AddSingleton<JwtSecurityTokenHandler>();
 
             services.AddValidation();
         }
@@ -23,8 +28,9 @@ namespace Application.Installers
             services.AddScoped<IValidationService, ValidationService>();
 
             services.AddScoped<IValidator, LoginCredentialsValidator>();
-            services.AddScoped<IValidator, RegiterUserValiator>();
+            services.AddScoped<IValidator, RegisterUserValiator>();
             services.AddScoped<IValidator, CreateWorkGroupValidator>();
+            services.AddScoped<IValidator, MoveHrsRequestValidator>();
 
             services.AddScoped(
                 provider => new Lazy<IEnumerable<IValidator>>(provider.GetServices<IValidator>));

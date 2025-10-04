@@ -33,6 +33,11 @@ namespace DataAccessLayer.Data
 
                 entity.HasIndex(u => u.Login)
                     .IsUnique();
+
+                entity.HasMany(u => u.CreatedApplicants)
+                    .WithOne(a => a.CreatedBy)
+                    .HasForeignKey(a => a.CreatedById)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<RefreshToken>()

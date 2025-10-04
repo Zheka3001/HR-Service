@@ -33,6 +33,9 @@ namespace DataAccessLayer.Migrations
                     b.Property<int>("ApplicantInfoId")
                         .HasColumnType("int");
 
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("LastUpdateDate")
                         .HasColumnType("datetime(6)");
 
@@ -46,6 +49,8 @@ namespace DataAccessLayer.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicantInfoId");
+
+                    b.HasIndex("CreatedById");
 
                     b.HasIndex("WorkGroupId");
 
@@ -246,6 +251,12 @@ namespace DataAccessLayer.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DataAccessLayer.Models.User", "CreatedBy")
+                        .WithMany("CreatedApplicants")
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("DataAccessLayer.Models.WorkGroup", "WorkGroup")
                         .WithMany("Applicants")
                         .HasForeignKey("WorkGroupId")
@@ -253,6 +264,8 @@ namespace DataAccessLayer.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicantInfo");
+
+                    b.Navigation("CreatedBy");
 
                     b.Navigation("WorkGroup");
                 });
@@ -306,6 +319,8 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("DataAccessLayer.Models.User", b =>
                 {
+                    b.Navigation("CreatedApplicants");
+
                     b.Navigation("RefreshTokens");
                 });
 

@@ -36,6 +36,14 @@ namespace DataAccessLayer.Repositories
                 .SingleOrDefaultAsync(x => x.Id == id);
         }
 
+        public async Task<List<User>> GetByIdsAsync(IEnumerable<int> userIds)
+        {
+            return await _context.Users
+                .Include(x => x.CreatedApplicants)
+                .Where(u => userIds.Contains(u.Id))
+                .ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
