@@ -69,7 +69,7 @@ namespace DataAccessLayer.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime?>("DateOfBirth")
+                    b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
@@ -85,7 +85,6 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("MiddleName")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("PhoneNumber")

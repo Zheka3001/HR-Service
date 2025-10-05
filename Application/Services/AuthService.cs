@@ -1,7 +1,7 @@
 ﻿using Application.Models;
 using Application.Services.Interfaces;
 using DataAccessLayer.Models;
-using DataAccessLayer.Repositories;
+using DataAccessLayer.Repositories.Interfaces;
 using System.Security.Cryptography;
 using System.Text;
 

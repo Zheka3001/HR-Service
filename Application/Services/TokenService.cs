@@ -2,7 +2,7 @@
 using Application.Services.Interfaces;
 using Configuration.Options;
 using DataAccessLayer.Models;
-using DataAccessLayer.Repositories;
+using DataAccessLayer.Repositories.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

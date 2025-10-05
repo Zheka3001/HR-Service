@@ -1,9 +1,9 @@
-﻿namespace DataAccessLayer.Models
-{
-    public class ApplicantInfo
-    {
-        public int Id { get; set; }
+﻿using DataAccessLayer.Models;
 
+namespace WebAPI.DTOs
+{
+    public class CreateApplicantRequestDto
+    {
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
@@ -18,7 +18,8 @@
 
         public DateTime DateOfBirth { get; set; }
 
-        // Relationships
-        public ICollection<SocialNetwork> SocialNetworks { get; set; }
+        public WorkSchedule WorkSchedule { get; set; }
+
+        public ICollection<CreateSocialNetworkInfoRequestDto> CreateSocialNetworkRequestList { get; set; }
     }
 }

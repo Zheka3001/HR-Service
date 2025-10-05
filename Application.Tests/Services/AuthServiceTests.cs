@@ -1,7 +1,6 @@
 ﻿using Application.Services.Interfaces;
 using Application.Services;
 using AutoMapper;
-using DataAccessLayer.Repositories;
 using Moq;
 using Application.Models;
 using DataAccessLayer.Models;
@@ -9,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Xunit;
 using FluentAssertions;
+using DataAccessLayer.Repositories.Interfaces;
 
 namespace Application.Tests.Services
 {

@@ -1,10 +1,6 @@
 ﻿using DataAccessLayer.Repositories;
+using DataAccessLayer.Repositories.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccessLayer.Installers
 {
@@ -15,6 +11,7 @@ namespace DataAccessLayer.Installers
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<IWorkGroupRepository, WorkGroupRepository>();
+            services.AddScoped<IApplicantRepository, ApplicantRepository>();
         }
     }
 }

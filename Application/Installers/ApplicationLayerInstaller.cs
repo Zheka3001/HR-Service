@@ -1,4 +1,5 @@
-﻿using Application.Services;
+﻿using Application.Models;
+using Application.Services;
 using Application.Services.Interfaces;
 using Application.Validators;
 using FluentValidation;
@@ -17,6 +18,7 @@ namespace Application.Installers
             services.AddScoped<IWorkGroupService, WorkGroupService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IPriciplesFromTokenProvider, PriciplesFromTokenProvider>();
+            services.AddScoped<IApplicantService, ApplicantService>();
 
             services.AddSingleton<JwtSecurityTokenHandler>();
 
@@ -31,6 +33,8 @@ namespace Application.Installers
             services.AddScoped<IValidator, RegisterUserValiator>();
             services.AddScoped<IValidator, CreateWorkGroupValidator>();
             services.AddScoped<IValidator, MoveHrsRequestValidator>();
+            services.AddScoped<IValidator, CreateApplicantRequestValidator>();
+            services.AddScoped<IValidator<CreateSocialNetworkInfoRequest>, CreateSocialNetworkInfoRequestValidator>();
 
             services.AddScoped(
                 provider => new Lazy<IEnumerable<IValidator>>(provider.GetServices<IValidator>));

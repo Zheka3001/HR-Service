@@ -3,7 +3,7 @@ using Application.Services;
 using Application.Services.Interfaces;
 using AutoMapper;
 using DataAccessLayer.Models;
-using DataAccessLayer.Repositories;
+using DataAccessLayer.Repositories.Interfaces;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Moq;

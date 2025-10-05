@@ -2,7 +2,7 @@
 using Application.Services.Interfaces;
 using AutoMapper;
 using DataAccessLayer.Models;
-using DataAccessLayer.Repositories;
+using DataAccessLayer.Repositories.Interfaces;
 
 namespace Application.Services
 {
