@@ -1,9 +1,15 @@
-﻿using DataAccessLayer.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Application.Models
 {
-    public class CreateApplicantRequest
+    public class UpdateApplicantRequest
     {
+        public int Id { get; set; }
+
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
@@ -19,10 +25,6 @@ namespace Application.Models
         public DateTime DateOfBirth { get; set; }
 
         public WorkSchedule WorkSchedule { get; set; }
-
-        public int? WorkGroupId { get; set; }
-
-        public int? CreatorId { get; set; }
 
         public ICollection<SocialNetwork> SocialNetworks { get; set; }
     }

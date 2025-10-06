@@ -13,7 +13,7 @@ namespace Application.Services.Profiles
     {
         public WorkGroupProfile()
         {
-            CreateMap<CreateWorkGroup, WorkGroup>();
+            CreateMap<CreateWorkGroup, WorkGroupDao>();
         }
     }
 }

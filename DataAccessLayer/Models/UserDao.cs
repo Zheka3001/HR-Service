@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Models
 {
-    public class User
+    public class UserDao
     {
         public int Id { get; set; }
         public string FirstName { get; set; }
@@ -15,7 +15,7 @@ namespace DataAccessLayer.Models
 
         public string? MiddleName { get; set; }
 
-        public Role Role { get; set; }
+        public RoleDao Role { get; set; }
 
         public string Login { get; set; }
 
@@ -24,11 +24,11 @@ namespace DataAccessLayer.Models
         public byte[] PasswordSalt { get; set; }
 
         // Relationship
-        public ICollection<RefreshToken> RefreshTokens { get; set; }
+        public ICollection<RefreshTokenDao> RefreshTokens { get; set; }
 
         public int? WorkGroupId { get; set; }
-        public WorkGroup? WorkGroup { get; set; }
+        public WorkGroupDao? WorkGroup { get; set; }
 
-        public ICollection<Applicant> CreatedApplicants { get; set; }
+        public ICollection<ApplicantDao> CreatedApplicants { get; set; }
     }
 }

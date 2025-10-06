@@ -1,42 +1,38 @@
-﻿using Application.Models;
+﻿using Application.Exceptions;
+using Application.Models;
 using Application.Services;
 using Application.Services.Interfaces;
+using Application.Tests.Extenstions;
+using AutoFixture;
 using AutoMapper;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories.Interfaces;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Application.Tests.Services
 {
     public class WorkGroupServiceTests
     {
-        private readonly Mock<IValidationService> _validationServiceMock;
-        private readonly Mock<IWorkGroupRepository> _workGroupRepositoryMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly Mock<IMapper> _mapperMock;
+        private readonly Fixture _fixture;
+        private readonly IValidationService _validationService;
+        private readonly IWorkGroupRepository _workGroupRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapperMock;
         private readonly WorkGroupService _workGroupService;
 
         public WorkGroupServiceTests()
         {
-            _validationServiceMock = new Mock<IValidationService>();
-            _workGroupRepositoryMock = new Mock<IWorkGroupRepository>();
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _mapperMock = new Mock<IMapper>();
+            _fixture = new Fixture().FixCircularReference();
+            _validationService = Substitute.For<IValidationService>();
+            _workGroupRepository = Substitute.For<IWorkGroupRepository>();
+            _userRepository = Substitute.For<IUserRepository>();
+            _mapperMock = Substitute.For<IMapper>();
 
-            _workGroupService = new WorkGroupService(
-                _workGroupRepositoryMock.Object,
-                _validationServiceMock.Object,
-                _mapperMock.Object,
-                _userRepositoryMock.Object
-                );
+            _workGroupService = new WorkGroupService(_workGroupRepository, _validationService, _mapperMock, _userRepository);
         }
 
         [Fact]
@@ -46,42 +42,34 @@ namespace Application.Tests.Services
             var validWorkGroupId = 100;
             var validUserIds = new List<int>() { 1, 2 };
 
-            var hrUsers = new List<User>
+            var hrUsers = new List<UserDao>
             {
-                new User { Id = 1, WorkGroupId = 10, CreatedApplicants = new List<Applicant>
+                new UserDao { Id = 1, WorkGroupId = 10, CreatedApplicants = new List<ApplicantDao>
                 {
-                    new Applicant { Id = 101, WorkGroupId = 10 },
-                    new Applicant { Id = 102, WorkGroupId = 10 }
+                    new ApplicantDao { Id = 101, WorkGroupId = 10 },
+                    new ApplicantDao { Id = 102, WorkGroupId = 10 }
                 }},
-                new User { Id = 2, WorkGroupId = 10, CreatedApplicants = new List<Applicant>
+                new UserDao { Id = 2, WorkGroupId = 10, CreatedApplicants = new List<ApplicantDao>
                 {
-                    new Applicant { Id = 103, WorkGroupId = 10 }
+                    new ApplicantDao { Id = 103, WorkGroupId = 10 }
                 }},
             };
 
+            var request = _fixture.Build<MoveHrsRequest>()
+                .With(r => r.WorkGroupId, validWorkGroupId)
+                .With(r => r.UserIds, validUserIds)
+                .Create();
+
             // Mock validation
-            _validationServiceMock
-                .Setup(v => v.ValidateAsync(It.IsAny<MoveHrsRequest>()))
-                .Returns(Task.CompletedTask);
-
-            // Mock Work Group existence
-            _workGroupRepositoryMock
-                .Setup(wr => wr.WorkGroupExistsAsync(validWorkGroupId))
-                .ReturnsAsync(true);
-
-            // Mock fetching users
-            _userRepositoryMock
-                .Setup(ur => ur.GetByIdsAsync(validUserIds))
-                .ReturnsAsync(hrUsers);
+            _validationService.ValidateAsync(Arg.Any<MoveHrsRequest>()).Returns(Task.CompletedTask);
+            _workGroupRepository.WorkGroupExistsAsync(validWorkGroupId).Returns(true);
+            _userRepository.GetByIdsAsync(validUserIds).Returns(hrUsers);
 
             // Mock transaction
-            var transactionMock = new Mock<IDbContextTransaction>();
-            _workGroupRepositoryMock
-                .Setup(wr => wr.BeginTransaction())
-                .Returns(transactionMock.Object);
+            var transactionMock = Substitute.For<IDbContextTransaction>();
+            _workGroupRepository.BeginTransaction().Returns(transactionMock);
 
             // Act
-            var request = new MoveHrsRequest {  WorkGroupId = validWorkGroupId, UserIds = validUserIds };
             await _workGroupService.MoveHrsAsync(request);
 
             //Assert
@@ -90,9 +78,8 @@ namespace Application.Tests.Services
             hrUsers.SelectMany(u => u.CreatedApplicants)
                 .Should().OnlyContain(a => a.WorkGroupId == validWorkGroupId);
 
-            _userRepositoryMock.Verify(ur => ur.SaveChangesAsync(), Times.Once());
-
-            transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once());
+            await _userRepository.Received(1).SaveChangesAsync();
+            await transactionMock.Received(1).CommitAsync(Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -101,21 +88,22 @@ namespace Application.Tests.Services
             // Arrange
             var invalidWorkGroupId = 999;
 
-            // Mock WorkGroup existence
-            _workGroupRepositoryMock
-                .Setup(wr => wr.WorkGroupExistsAsync(invalidWorkGroupId))
-                .ReturnsAsync(false);
+            var request = _fixture.Build<MoveHrsRequest>()
+                .With(r => r.WorkGroupId, invalidWorkGroupId)
+                .With(r => r.UserIds, [1])
+                .Create();
+
+            _workGroupRepository.WorkGroupExistsAsync(invalidWorkGroupId).Returns(false);
 
             // Act
-            var request = new MoveHrsRequest { WorkGroupId = invalidWorkGroupId, UserIds = new List<int> { 1 } };
             var act = async () => await _workGroupService.MoveHrsAsync(request);
 
             // Assert
-            await act.Should().ThrowAsync<ArgumentException>()
+            await act.Should().ThrowAsync<BadArgumentException>()
                 .WithMessage("Destination work group does not exists");
 
             // Verify transaction is not invoked
-            _workGroupRepositoryMock.Verify(wr => wr.BeginTransaction(), Times.Never);
+            _workGroupRepository.DidNotReceive().BeginTransaction();
         }
 
         [Fact]
@@ -124,35 +112,32 @@ namespace Application.Tests.Services
             // Arrange
             var validWorkGroupId = 100;
             var requestUserIds = new List<int> { 1, 2, 3 };
-            var foundUsers = new List<User>
+            var foundUsers = new List<UserDao>
             {
-                new User { Id = 1 },
-                new User { Id = 2 }
+                new UserDao { Id = 1 },
+                new UserDao { Id = 2 }
             };
 
-            // Mock WorkGroup existence
-            _workGroupRepositoryMock
-                .Setup(wr => wr.WorkGroupExistsAsync(validWorkGroupId))
-                .ReturnsAsync(true);
+            _workGroupRepository.WorkGroupExistsAsync(validWorkGroupId).Returns(true);
+            _userRepository.GetByIdsAsync(requestUserIds).Returns(foundUsers);
 
-            // Mock fetching users
-            _userRepositoryMock
-                .Setup(ur => ur.GetByIdsAsync(requestUserIds))
-                .ReturnsAsync(foundUsers);
+            var request = _fixture.Build<MoveHrsRequest>()
+                .With(r => r.WorkGroupId, validWorkGroupId)
+                .With(r => r.UserIds, requestUserIds)
+                .Create();
 
             // Act
-            var request = new MoveHrsRequest { WorkGroupId = validWorkGroupId, UserIds = requestUserIds };
             Func<Task> act = async () => await _workGroupService.MoveHrsAsync(request);
 
             // Assert
-            await act.Should().ThrowAsync<ArgumentException>()
+            await act.Should().ThrowAsync<BadArgumentException>()
                 .WithMessage("Invalid HR user IDs provided 3");
 
             // Verify SaveChangesAsync is not called
-            _userRepositoryMock.Verify(ur => ur.SaveChangesAsync(), Times.Never);
+            await _userRepository.DidNotReceive().SaveChangesAsync();
 
             // Verify transaction is not invoked
-            _workGroupRepositoryMock.Verify(wr => wr.BeginTransaction(), Times.Never);
+            _workGroupRepository.DidNotReceive().BeginTransaction();
         }
 
         [Fact]
@@ -162,42 +147,34 @@ namespace Application.Tests.Services
             var validWorkGroupId = 100;
             var validUserIds = new List<int> { 1 };
 
-            var hrUsers = new List<User>
+            var hrUsers = new List<UserDao>
             {
-                new User { Id = 1, CreatedApplicants = new List<Applicant>() }
+                new UserDao { Id = 1, CreatedApplicants = new List<ApplicantDao>() }
             };
 
-            // Mock WorkGroup existence
-            _workGroupRepositoryMock
-                .Setup(wr => wr.WorkGroupExistsAsync(validWorkGroupId))
-                .ReturnsAsync(true);
+            var request = _fixture.Build<MoveHrsRequest>()
+                .With(r => r.WorkGroupId, validWorkGroupId)
+                .With(r => r.UserIds, validUserIds)
+                .Create();
 
-            // Mock fetching users
-            _userRepositoryMock
-                .Setup(ur => ur.GetByIdsAsync(validUserIds))
-                .ReturnsAsync(hrUsers);
+            _workGroupRepository.WorkGroupExistsAsync(validWorkGroupId).Returns(true);
+            _userRepository.GetByIdsAsync(validUserIds).Returns(hrUsers);
 
             // Mock transaction
-            var transactionMock = new Mock<IDbContextTransaction>();
-            _workGroupRepositoryMock
-                .Setup(wr => wr.BeginTransaction())
-                .Returns(transactionMock.Object);
+            var transactionMock = Substitute.For<IDbContextTransaction>();
+            _workGroupRepository.BeginTransaction().Returns(transactionMock);
 
             // Simulate failure in saving changes
-            _userRepositoryMock
-                .Setup(ur => ur.SaveChangesAsync())
-                .ThrowsAsync(new Exception("Database error"));
+            _userRepository.SaveChangesAsync().Throws(new Exception("Database error"));
 
             // Act
-            var request = new MoveHrsRequest { WorkGroupId = validWorkGroupId, UserIds = validUserIds };
             Func<Task> act = async () => await _workGroupService.MoveHrsAsync(request);
 
             // Assert
-            await act.Should().ThrowAsync<Exception>()
-                .WithMessage("Database error");
+            await act.Should().ThrowAsync<Exception>().WithMessage("Database error");
 
             // Verify the transaction rollbacks
-            transactionMock.Verify(t => t.RollbackAsync(It.IsAny<CancellationToken>()), Times.Once);
+            await transactionMock.Received(1).RollbackAsync(Arg.Any<CancellationToken>());
         }
     }
 }

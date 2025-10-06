@@ -9,15 +9,15 @@ namespace DataAccessLayer.Repositories.Interfaces
 {
     public interface IUserRepository
     {
-        Task<User?> GetByEmailAsync(string email);
+        Task<UserDao?> GetByEmailAsync(string email);
 
-        Task<User?> GetByIdAsync(int id);
+        Task<UserDao?> GetByIdAsync(int id);
 
-        Task<List<User>> GetByIdsAsync(IEnumerable<int> userIds);
+        Task<List<UserDao>> GetByIdsAsync(IEnumerable<int> userIds);
 
         Task<bool> UserExistsAsync(string email);
 
-        Task AddUserAsync(User user);
+        Task AddUserAsync(UserDao user);
 
         Task SaveChangesAsync();
     }

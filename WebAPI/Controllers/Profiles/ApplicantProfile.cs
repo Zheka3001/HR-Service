@@ -1,6 +1,5 @@
 ﻿using Application.Models;
 using AutoMapper;
-using DataAccessLayer.Models;
 using WebAPI.DTOs;
 
 namespace WebAPI.Controllers.Profiles
@@ -9,11 +8,12 @@ namespace WebAPI.Controllers.Profiles
     {
         public ApplicantProfile()
         {
-            CreateMap<CreateApplicantRequestDto, CreateApplicantRequest>()
-                .ForMember(dest => dest.CreateSocialNetworkInfoRequests, opt => opt.MapFrom(src => src.CreateSocialNetworkRequestList));
-            CreateMap<CreateSocialNetworkInfoRequestDto, CreateSocialNetworkInfoRequest>();
+            CreateMap<CreateApplicantRequestDto, CreateApplicantRequest>();
+            CreateMap<SocialNetworkDto, SocialNetwork>();
 
             CreateMap<CreateApplicantResponse, CreateApplicantResponseDto>();
+
+            CreateMap<UpdateApplicantRequestDto, UpdateApplicantRequest>();
         }
     }
 }

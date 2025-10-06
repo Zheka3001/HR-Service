@@ -5,7 +5,7 @@ namespace DataAccessLayer.Repositories.Interfaces
 {
     public interface IWorkGroupRepository
     {
-        Task InsertAsync(WorkGroup workGroup);
+        Task InsertAsync(WorkGroupDao workGroup);
 
         Task<bool> WorkGroupExistsAsync(int workGroupId);
 

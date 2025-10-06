@@ -1,6 +1,7 @@
 ﻿using DataAccessLayer.Data;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,15 @@ namespace DataAccessLayer.Repositories
             _context = context;
         }
 
-        public async Task InsertAsync(Applicant applicant)
+        public async Task<ApplicantDao?> GetByIdAsync(int id)
+        {
+            return await _context.Applicants
+                .Include(a => a.ApplicantInfo)
+                .ThenInclude(ai => ai.SocialNetworks)
+                .FirstOrDefaultAsync(a =>  a.Id == id);
+        }
+
+        public async Task InsertAsync(ApplicantDao applicant)
         {
             await _context.AddAsync(applicant);
         }

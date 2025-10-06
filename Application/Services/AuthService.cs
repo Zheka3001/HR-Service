@@ -1,4 +1,5 @@
-﻿using Application.Models;
+﻿using Application.Exceptions;
+using Application.Models;
 using Application.Services.Interfaces;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories.Interfaces;
@@ -38,11 +39,11 @@ namespace Application.Services
             return await _tokenService.RefreshTokensAsync(accessToken, refreshToken);
         }
 
-        private void ValidateAuthorizationLogin(LoginRequest request, User? user)
+        private void ValidateAuthorizationLogin(LoginRequest request, UserDao? user)
         {
             if (user == null)
             {
-                throw new UnauthorizedAccessException("Invalid login or password");
+                throw new UnauthorizedException("Invalid login or password");
             }
 
             using var hmac = new HMACSHA512(user.PasswordSalt);
@@ -51,7 +52,7 @@ namespace Application.Services
 
             for (var i = 0; i < computedHash.Length; i++)
             {
-                if (computedHash[i] != user.PasswordHash[i]) throw new UnauthorizedAccessException("Invalid login or password");
+                if (computedHash[i] != user.PasswordHash[i]) throw new UnauthorizedException("Invalid login or password");
             }
 
         }

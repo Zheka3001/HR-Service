@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Models
 {
-    public class Employee
+    public class EmployeeDao
     {
         public int Id { get; set; }
 
@@ -14,6 +14,6 @@ namespace DataAccessLayer.Models
 
         // Relationship
         public int ApplicantInfoId { get; set; }
-        public ApplicantInfo ApplicantInfo { get; set; }
+        public ApplicantInfoDao ApplicantInfo { get; set; }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.Validators.Rules
 {
-    public static class RegisterUserValidationRules
+    public static class FullNameValidationRules
     {
         public const int FirstNameMinLength = 2;
         public const int FirstNameMaxLength = 50;

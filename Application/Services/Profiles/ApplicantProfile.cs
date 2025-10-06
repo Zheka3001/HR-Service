@@ -8,9 +8,9 @@ namespace Application.Services.Profiles
     {
         public ApplicantProfile()
         {
-            CreateMap<CreateApplicantRequest, Applicant>()
+            CreateMap<CreateApplicantRequest, ApplicantDao>()
                 .ForMember(dest => dest.CreatedById, opt => opt.MapFrom(src => src.CreatorId))
-                .ForMember(dest => dest.ApplicantInfo, opt => opt.MapFrom(src => new ApplicantInfo
+                .ForMember(dest => dest.ApplicantInfo, opt => opt.MapFrom(src => new ApplicantInfoDao
                 {
                     FirstName = src.FirstName,
                     LastName = src.LastName,
@@ -19,15 +19,15 @@ namespace Application.Services.Profiles
                     PhoneNumber = src.PhoneNumber,
                     Country = src.Country,
                     DateOfBirth = src.DateOfBirth,
-                    SocialNetworks = src.CreateSocialNetworkInfoRequests.Select(sn => new SocialNetwork
+                    SocialNetworks = src.SocialNetworks.Select(sn => new SocialNetworkDao
                     {
                         UserName = sn.UserName,
-                        Type = sn.Type,
+                        Type = (SocialNetworkTypeDao)sn.Type,
                         CreateDate = DateTime.Now,
                     }).ToList()
                 }));
 
-            CreateMap<Applicant, CreateApplicantResponse>()
+            CreateMap<ApplicantDao, CreateApplicantResponse>()
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.ApplicantInfo.FirstName))
                 .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.ApplicantInfo.LastName))
                 .ForMember(dest => dest.MiddleName, opt => opt.MapFrom(src => src.ApplicantInfo.MiddleName))
@@ -35,6 +35,9 @@ namespace Application.Services.Profiles
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.ApplicantInfo.PhoneNumber))
                 .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.ApplicantInfo.Country))
                 .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.ApplicantInfo.DateOfBirth));
+
+            CreateMap<SocialNetwork, SocialNetworkDao>()
+                .ForMember(dest => dest.CreateDate, opt => opt.MapFrom(src => DateTime.UtcNow));
         }
     }
 }

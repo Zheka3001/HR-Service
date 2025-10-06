@@ -1,6 +1,6 @@
 ﻿namespace DataAccessLayer.Models
 {
-    public enum WorkSchedule
+    public enum WorkScheduleDao
     {
         Office,
         Remote,

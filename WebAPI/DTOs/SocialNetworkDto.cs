@@ -2,10 +2,10 @@
 
 namespace WebAPI.DTOs
 {
-    public class CreateSocialNetworkInfoRequestDto
+    public class SocialNetworkDto
     {
         public string UserName { get; set; }
 
-        public SocialNetworkType Type { get; set; }
+        public SocialNetworkTypeDto Type { get; set; }
     }
 }

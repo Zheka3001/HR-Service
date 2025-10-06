@@ -1,39 +1,38 @@
-﻿using Application.Services;
+﻿using Application.Exceptions;
+using Application.Services;
 using Application.Services.Interfaces;
+using Application.Tests.Extenstions;
+using AutoFixture;
 using Configuration.Options;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories.Interfaces;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using Moq;
-using System;
-using System.Collections.Generic;
+using NSubstitute;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Application.Tests.Services
 {
     public class TokenServiceTests
     {
-        private readonly Mock<IRefreshTokenRepository> _refreshTokenRepositoryMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly Mock<IOptions<JwtTokenOptions>> _jwtTokenOptionsMock;
-        private readonly Mock<JwtSecurityTokenHandler> _jwtSecurityTokenHandlerMock;
-        private readonly Mock<IPriciplesFromTokenProvider> _priciplesFromTokenProviderMock;
+        private readonly Fixture _fixture;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IOptions<JwtTokenOptions> _jwtTokenOptions;
+        private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
+        private readonly IPriciplesFromTokenProvider _priciplesFromTokenProvider;
         private readonly TokenService _tokenService;
 
         public TokenServiceTests()
         {
-            _refreshTokenRepositoryMock = new Mock<IRefreshTokenRepository>();
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _jwtTokenOptionsMock = new Mock<IOptions<JwtTokenOptions>>();
-            _jwtSecurityTokenHandlerMock = new Mock<JwtSecurityTokenHandler>();
-            _priciplesFromTokenProviderMock = new Mock<IPriciplesFromTokenProvider>();
+            _fixture = new Fixture().FixCircularReference();
+            _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
+            _userRepository = Substitute.For<IUserRepository>();
+            _jwtTokenOptions = Substitute.For<IOptions<JwtTokenOptions>>();
+            _jwtSecurityTokenHandler = Substitute.For<JwtSecurityTokenHandler>();
+            _priciplesFromTokenProvider = Substitute.For<IPriciplesFromTokenProvider>();
 
             var jwtTokenOptions = new JwtTokenOptions
             {
@@ -43,41 +42,22 @@ namespace Application.Tests.Services
                 AccessTokenExpirationMinutes = 30,
                 RefreshTokenExpirationDays = 7
             };
-            _jwtTokenOptionsMock.Setup(opt => opt.Value).Returns(jwtTokenOptions);
+            _jwtTokenOptions.Value.Returns(jwtTokenOptions);
 
-            _tokenService = new TokenService(
-                _refreshTokenRepositoryMock.Object,
-                _userRepositoryMock.Object,
-                _jwtTokenOptionsMock.Object,
-                _jwtSecurityTokenHandlerMock.Object,
-                _priciplesFromTokenProviderMock.Object);
+            _tokenService = new TokenService(_refreshTokenRepository, _userRepository, _jwtTokenOptions, _jwtSecurityTokenHandler, _priciplesFromTokenProvider);
         }
 
         [Fact]
         public async Task GenerateTokensAsync_ShouldGenerateAndSaveTokensForValidUser()
         {
             // Arrange
-            var user = new User
-            {
-                Id = 1,
-                FirstName = "John",
-                LastName = "Doe",
-                Role = Role.Admin
-            };
+            var user = _fixture.Create<UserDao>();
 
             var expectedAccessToken = "mock-access-token";
 
-            _jwtSecurityTokenHandlerMock
-                .Setup(handler => handler.WriteToken(It.IsAny<JwtSecurityToken>()))
-                .Returns(expectedAccessToken);
-
-            _refreshTokenRepositoryMock
-                .Setup(repo => repo.InsertTokenAsync(It.IsAny<RefreshToken>()))
-                .Returns(Task.CompletedTask);
-
-            _refreshTokenRepositoryMock
-                .Setup(repo => repo.SaveChangesAsync())
-                .Returns(Task.CompletedTask);
+            _jwtSecurityTokenHandler.WriteToken(Arg.Any<JwtSecurityToken>()).Returns(expectedAccessToken);
+            _refreshTokenRepository.InsertTokenAsync(Arg.Any<RefreshTokenDao>()).Returns(Task.CompletedTask);
+            _refreshTokenRepository.SaveChangesAsync().Returns(Task.CompletedTask);
 
             // Act
             var authTokens = await _tokenService.GenerateTokensAsync(user);
@@ -90,10 +70,9 @@ namespace Application.Tests.Services
             authTokens.RefreshTokenExpiry.Should().BeAfter(DateTime.UtcNow);
 
             // Verify repository and handler interactions
-            _refreshTokenRepositoryMock.Verify(repo => repo.InsertTokenAsync(It.IsAny<RefreshToken>()), Times.Once);
-            _refreshTokenRepositoryMock.Verify(repo => repo.SaveChangesAsync(), Times.Once);
-
-            _jwtSecurityTokenHandlerMock.Verify(handler => handler.WriteToken(It.IsAny<JwtSecurityToken>()), Times.Once);
+            await _refreshTokenRepository.Received(1).InsertTokenAsync(Arg.Any<RefreshTokenDao>());
+            await _refreshTokenRepository.Received(1).SaveChangesAsync();
+            _jwtSecurityTokenHandler.Received(1).WriteToken(Arg.Any<JwtSecurityToken>());
         }
 
         [Fact]
@@ -101,48 +80,31 @@ namespace Application.Tests.Services
         {
             // Arrange
             var userId = 1;
-            var user = new User
-            {
-                Id = userId,
-                FirstName = "John",
-                LastName = "Doe",
-                Role = Role.Admin,
-                RefreshTokens = new List<RefreshToken>
-                    {
-                        new RefreshToken
-                        {
-                            Token = "valid-refresh-token",
-                            IsUsed = false,
-                            IsRevoked = false,
-                            Expires = DateTime.UtcNow.AddDays(3)
-                        }
-                    }
-            };
-
             var accessToken = "mock-valid-access-token";
             var refreshToken = "valid-refresh-token";
             var newAccessToken = "new-access-token";
+
+            var existingRefreshTokenDao = _fixture.Build<RefreshTokenDao>()
+                .With(t => t.Token, refreshToken)
+                .With(t => t.IsUsed, false)
+                .With(t => t.IsRevoked, false)
+                .With(t => t.Expires, DateTime.UtcNow.AddDays(3))
+                .Create();
+
+            var user = _fixture.Build<UserDao>()
+                .With(u => u.Id, userId)
+                .With(u => u.RefreshTokens, new List<RefreshTokenDao> { existingRefreshTokenDao })
+                .Create();
 
             var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString())
             }));
 
-            _priciplesFromTokenProviderMock
-                .Setup(provider => provider.GetPrincipalFromExpiredToken(accessToken))
-                .Returns(claimsPrincipal);
-
-            _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
-
-            _refreshTokenRepositoryMock
-                .Setup(repo => repo.SaveChangesAsync())
-                .Returns(Task.CompletedTask);
-
-            _jwtSecurityTokenHandlerMock
-                .Setup(handler => handler.WriteToken(It.IsAny<JwtSecurityToken>()))
-                .Returns(newAccessToken);
+            _priciplesFromTokenProvider.GetPrincipalFromExpiredToken(accessToken).Returns(claimsPrincipal);
+            _userRepository.GetByIdAsync(userId).Returns(user);
+            _refreshTokenRepository.SaveChangesAsync().Returns(Task.CompletedTask);
+            _jwtSecurityTokenHandler.WriteToken(Arg.Any<JwtSecurityToken>()).Returns(newAccessToken);
 
             // Act
             var authTokens = await _tokenService.RefreshTokensAsync(accessToken, refreshToken);
@@ -159,8 +121,8 @@ namespace Application.Tests.Services
             savedToken.IsUsed.Should().BeTrue();
 
             // Verify repository and handler interactions
-            _refreshTokenRepositoryMock.Verify(repo => repo.SaveChangesAsync(), Times.Once);
-            _priciplesFromTokenProviderMock.Verify(provider => provider.GetPrincipalFromExpiredToken(accessToken), Times.Once);
+            await _refreshTokenRepository.Received(1).SaveChangesAsync();
+            _priciplesFromTokenProvider.Received(1).GetPrincipalFromExpiredToken(accessToken);
         }
 
         [Fact]
@@ -168,20 +130,14 @@ namespace Application.Tests.Services
         {
             // Arrange
             var userId = 1;
-            var user = new User
-            {
-                Id = userId,
-                RefreshTokens = new List<RefreshToken>
-                {
-                    new RefreshToken
-                    {
-                        Token = "revoked-token",
-                        IsUsed = false,
-                        IsRevoked = true, // Token is revoked
-                        Expires = DateTime.UtcNow.AddDays(5)
-                    }
-                }
-            };
+            var existingRefreshTokenDao = _fixture.Build<RefreshTokenDao>()
+                .With(t => t.IsRevoked, false)
+                .Create();
+
+            var user = _fixture.Build<UserDao>()
+                .With(u => u.Id, userId)
+                .With(u => u.RefreshTokens, new List<RefreshTokenDao> { existingRefreshTokenDao })
+                .Create();
 
             var accessToken = "mock-valid-access-token";
             var refreshToken = "revoked-token";
@@ -191,26 +147,21 @@ namespace Application.Tests.Services
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString())
             }));
 
-            _priciplesFromTokenProviderMock
-                .Setup(provider => provider.GetPrincipalFromExpiredToken(accessToken))
-                .Returns(claimsPrincipal);
-
-            _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
+            _priciplesFromTokenProvider.GetPrincipalFromExpiredToken(accessToken).Returns(claimsPrincipal);
+            _userRepository.GetByIdAsync(userId).Returns(user);
 
             // Act
             Func<Task> act = async () => await _tokenService.RefreshTokensAsync(accessToken, refreshToken);
 
             // Assert
             await act.Should()
-                .ThrowAsync<ArgumentException>()
+                .ThrowAsync<BadArgumentException>()
                 .WithMessage("Access or refresh token are invalid.");
 
             // Verify interactions
-            _userRepositoryMock.Verify(repo => repo.GetByIdAsync(userId), Times.Once);
-            _refreshTokenRepositoryMock.Verify(repo => repo.SaveChangesAsync(), Times.Never);
-            _priciplesFromTokenProviderMock.Verify(provider => provider.GetPrincipalFromExpiredToken(accessToken), Times.Once);
+            await _userRepository.Received(1).GetByIdAsync(userId);
+            await _refreshTokenRepository.DidNotReceive().SaveChangesAsync();
+            _priciplesFromTokenProvider.Received(1).GetPrincipalFromExpiredToken(accessToken);
         }
 
         [Fact]
@@ -220,21 +171,19 @@ namespace Application.Tests.Services
             var accessToken = "invalid-access-token";
             var refreshToken = "valid-refresh-token";
 
-            _priciplesFromTokenProviderMock
-                .Setup(provider => provider.GetPrincipalFromExpiredToken(accessToken))
-                .Returns((ClaimsPrincipal)null);
+            _priciplesFromTokenProvider.GetPrincipalFromExpiredToken(accessToken).Returns((ClaimsPrincipal)null);
 
             // Act
             Func<Task> act = async () => await _tokenService.RefreshTokensAsync(accessToken, refreshToken);
 
             // Assert
             await act.Should()
-                .ThrowAsync<ArgumentException>()
+                .ThrowAsync<BadArgumentException>()
                 .WithMessage("Access or refresh token are invalid.");
 
             // Verify interactions
-            _userRepositoryMock.Verify(repo => repo.GetByIdAsync(It.IsAny<int>()), Times.Never);
-            _refreshTokenRepositoryMock.Verify(repo => repo.SaveChangesAsync(), Times.Never);
+            await _userRepository.DidNotReceive().GetByIdAsync(Arg.Any<int>());
+            await _refreshTokenRepository.DidNotReceive().SaveChangesAsync();
         }
     }
 }

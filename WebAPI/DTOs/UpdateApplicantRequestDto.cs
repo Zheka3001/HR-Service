@@ -2,8 +2,10 @@
 
 namespace WebAPI.DTOs
 {
-    public class CreateApplicantResponseDto
+    public class UpdateApplicantRequestDto
     {
+        public int Id { get; set; }
+
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
@@ -16,10 +18,10 @@ namespace WebAPI.DTOs
 
         public string Country { get; set; }
 
-        public DateTime? DateOfBirth { get; set; }
+        public DateTime DateOfBirth { get; set; }
 
         public WorkScheduleDto WorkSchedule { get; set; }
 
-        public int WorkGroupId { get; set; }
+        public ICollection<SocialNetworkDto> SocialNetworks { get; set; }
     }
 }

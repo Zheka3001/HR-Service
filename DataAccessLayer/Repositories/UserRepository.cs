@@ -19,25 +19,25 @@ namespace DataAccessLayer.Repositories
             _context = context;
         }
 
-        public async Task AddUserAsync(User user)
+        public async Task AddUserAsync(UserDao user)
         {
             await _context.Users.AddAsync(user);
         }
 
-        public async Task<User?> GetByEmailAsync(string email)
+        public async Task<UserDao?> GetByEmailAsync(string email)
         {
             return await _context.Users
                 .SingleOrDefaultAsync(x => x.Login.Equals(email, StringComparison.OrdinalIgnoreCase));
         }
 
-        public async Task<User?> GetByIdAsync(int id)
+        public async Task<UserDao?> GetByIdAsync(int id)
         {
             return await _context.Users
                 .Include(x => x.RefreshTokens)
                 .SingleOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<List<User>> GetByIdsAsync(IEnumerable<int> userIds)
+        public async Task<List<UserDao>> GetByIdsAsync(IEnumerable<int> userIds)
         {
             return await _context.Users
                 .Include(x => x.CreatedApplicants)

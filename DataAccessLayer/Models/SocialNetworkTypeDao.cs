@@ -1,6 +1,6 @@
 ﻿namespace DataAccessLayer.Models
 {
-    public enum SocialNetworkType
+    public enum SocialNetworkTypeDao
     {
         LinkedIn,
         GitHub,

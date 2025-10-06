@@ -1,17 +1,12 @@
 ﻿using Application.Models;
 using Application.Validators.Rules;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Validators
 {
-    public class CreateApplicantRequestValidator : AbstractValidator<CreateApplicantRequest>
+    public class UpdateApplicantRequestValidator : AbstractValidator<UpdateApplicantRequest>
     {
-        public CreateApplicantRequestValidator(IValidator<SocialNetwork> socialNetworkValidator)
+        public UpdateApplicantRequestValidator(IValidator<SocialNetwork> socialNetworkValidator)
         {
             RuleFor(o => o.Email).ValidateEmail();
 
@@ -28,7 +23,7 @@ namespace Application.Validators
             RuleFor(o => o.MiddleName)
                 .MinimumLength(FullNameValidationRules.MiddleNameMinLength).WithMessage($"Middle name must be at least {FullNameValidationRules.MiddleNameMinLength} characters long")
                 .MaximumLength(FullNameValidationRules.MiddleNameMaxLength).WithMessage($"Middle name cannot exceed {FullNameValidationRules.MiddleNameMaxLength} characters");
-    
+
             RuleFor(o => o.PhoneNumber).ValidatePhoneNumber();
 
             RuleFor(o => o.Country).ValidateCountryName();

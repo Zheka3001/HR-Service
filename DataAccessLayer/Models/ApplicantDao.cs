@@ -1,21 +1,21 @@
 ﻿namespace DataAccessLayer.Models
 {
-    public class Applicant
+    public class ApplicantDao
     {
         public int Id { get; set; }
 
         public DateTime LastUpdateDate { get; set; }
 
-        public WorkSchedule WorkSchedule { get; set; }
+        public WorkScheduleDao WorkSchedule { get; set; }
 
         // Relationships
         public int ApplicantInfoId { get; set; }
-        public ApplicantInfo ApplicantInfo { get; set; }
+        public ApplicantInfoDao ApplicantInfo { get; set; }
 
         public int WorkGroupId { get; set; }
-        public WorkGroup WorkGroup { get; set; }
+        public WorkGroupDao WorkGroup { get; set; }
 
         public int CreatedById { get; set; }
-        public User CreatedBy { get; set; }
+        public UserDao CreatedBy { get; set; }
     }
 }

@@ -19,12 +19,12 @@ namespace DataAccessLayer.Repositories
             _context = dataContext;
         }
 
-        public async Task InsertTokenAsync(RefreshToken token)
+        public async Task InsertTokenAsync(RefreshTokenDao token)
         {
             await _context.RefreshTokens.AddAsync(token);
         }
 
-        public async Task<IEnumerable<RefreshToken>> GetRefreshTokensByUserIdAsync(int userId)
+        public async Task<IEnumerable<RefreshTokenDao>> GetRefreshTokensByUserIdAsync(int userId)
         {
             return await _context.RefreshTokens.Where(token => token.UserId == userId).ToListAsync();
         }

@@ -20,7 +20,7 @@ namespace DataAccessLayer.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task InsertAsync(WorkGroup workGroup)
+        public async Task InsertAsync(WorkGroupDao workGroup)
         {
             await _context.WorkGroups.AddAsync(workGroup);
         }

@@ -18,9 +18,9 @@ namespace WebAPI.Extensions
 
             using var hmac = new HMACSHA512();
 
-            var adminUser = new User
+            var adminUser = new UserDao
             {
-                Role = Role.Admin,
+                Role = RoleDao.Admin,
                 FirstName = "Admin",
                 LastName = "Default",
                 MiddleName = null,

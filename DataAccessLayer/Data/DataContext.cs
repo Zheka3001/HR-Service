@@ -11,19 +11,19 @@ namespace DataAccessLayer.Data
 
         public DataContext(DbContextOptions<DataContext> options) : base(options) {}
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<RefreshToken> RefreshTokens { get; set; }
-        public DbSet<WorkGroup> WorkGroups { get; set; }
-        public DbSet<Applicant> Applicants { get; set; }
-        public DbSet<ApplicantInfo> ApplicantInfos { get; set; }
-        public DbSet<Employee> Employees { get; set; }
-        public DbSet<SocialNetwork> SocialNetworks { get; set; }
+        public DbSet<UserDao> Users { get; set; }
+        public DbSet<RefreshTokenDao> RefreshTokens { get; set; }
+        public DbSet<WorkGroupDao> WorkGroups { get; set; }
+        public DbSet<ApplicantDao> Applicants { get; set; }
+        public DbSet<ApplicantInfoDao> ApplicantInfos { get; set; }
+        public DbSet<EmployeeDao> Employees { get; set; }
+        public DbSet<SocialNetworkDao> SocialNetworks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>(entity =>
+            modelBuilder.Entity<UserDao>(entity =>
             {
                 entity.Property(u => u.Role)
                     .HasConversion<string>()
@@ -40,42 +40,42 @@ namespace DataAccessLayer.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            modelBuilder.Entity<RefreshToken>()
+            modelBuilder.Entity<RefreshTokenDao>()
                 .HasOne(r => r.User)
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<WorkGroup>()
+            modelBuilder.Entity<WorkGroupDao>()
                 .HasMany(wg => wg.Users)
                 .WithOne(u => u.WorkGroup)
                 .HasForeignKey(u => u.WorkGroupId);
 
-            modelBuilder.Entity<WorkGroup>()
+            modelBuilder.Entity<WorkGroupDao>()
                 .HasMany(wg => wg.Applicants)
                 .WithOne(a => a.WorkGroup)
                 .HasForeignKey(a => a.WorkGroupId);
 
-            modelBuilder.Entity<Applicant>()
+            modelBuilder.Entity<ApplicantDao>()
                 .HasOne(a => a.ApplicantInfo)
                 .WithMany()
                 .HasForeignKey(a => a.ApplicantInfoId);
 
-            modelBuilder.Entity<Applicant>()
+            modelBuilder.Entity<ApplicantDao>()
                 .Property(a => a.WorkSchedule)
                 .HasConversion<string>();
 
-            modelBuilder.Entity<ApplicantInfo>()
+            modelBuilder.Entity<ApplicantInfoDao>()
                 .HasMany(ai => ai.SocialNetworks)
                 .WithOne(sn => sn.ApplicantInfo)
                 .HasForeignKey(sn => sn.ApplicantInfoId);
 
-            modelBuilder.Entity<Employee>()
+            modelBuilder.Entity<EmployeeDao>()
                 .HasOne(e => e.ApplicantInfo)
                 .WithMany()
                 .HasForeignKey(e => e.ApplicantInfoId);
 
-            modelBuilder.Entity<SocialNetwork>()
+            modelBuilder.Entity<SocialNetworkDao>()
                 .Property(sn => sn.Type)
                 .HasConversion<string>();
 

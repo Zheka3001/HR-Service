@@ -9,9 +9,9 @@ namespace DataAccessLayer.Repositories.Interfaces
 {
     public interface IRefreshTokenRepository
     {
-        Task InsertTokenAsync(RefreshToken token);
+        Task InsertTokenAsync(RefreshTokenDao token);
 
-        Task<IEnumerable<RefreshToken>> GetRefreshTokensByUserIdAsync(int userId);
+        Task<IEnumerable<RefreshTokenDao>> GetRefreshTokensByUserIdAsync(int userId);
 
         Task SaveChangesAsync();
     }

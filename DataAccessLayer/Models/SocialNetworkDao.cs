@@ -1,17 +1,17 @@
 ﻿namespace DataAccessLayer.Models
 {
-    public class SocialNetwork
+    public class SocialNetworkDao
     {
         public int Id { get; set; }
 
         public string UserName { get; set; }
 
-        public SocialNetworkType Type { get; set; }
+        public SocialNetworkTypeDao Type { get; set; }
 
         public DateTime CreateDate { get; set; }
 
         public int ApplicantInfoId { get; set; }
 
-        public ApplicantInfo ApplicantInfo { get; set; }
+        public ApplicantInfoDao ApplicantInfo { get; set; }
     }
 }

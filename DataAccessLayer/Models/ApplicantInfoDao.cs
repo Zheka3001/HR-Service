@@ -1,6 +1,6 @@
 ﻿namespace DataAccessLayer.Models
 {
-    public class ApplicantInfo
+    public class ApplicantInfoDao
     {
         public int Id { get; set; }
 
@@ -19,6 +19,6 @@
         public DateTime DateOfBirth { get; set; }
 
         // Relationships
-        public ICollection<SocialNetwork> SocialNetworks { get; set; }
+        public ICollection<SocialNetworkDao> SocialNetworks { get; set; }
     }
 }

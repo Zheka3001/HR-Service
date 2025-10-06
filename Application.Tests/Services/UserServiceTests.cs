@@ -1,201 +1,131 @@
-﻿using Application.Models;
+﻿using Application.Exceptions;
+using Application.Models;
 using Application.Services;
 using Application.Services.Interfaces;
+using Application.Tests.Extenstions;
+using AutoFixture;
 using AutoMapper;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories.Interfaces;
 using FluentAssertions;
-using Moq;
-using System.Security.Cryptography;
-using System.Text;
+using FluentValidation;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Application.Tests.Services
 {
     public class UserServiceTests
     {
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly Mock<IValidationService> _validationServiceMock;
-        private readonly Mock<IMapper> _mapper;
-        private readonly Mock<IWorkGroupRepository> _workGroupRepositoryMock;
+        private readonly Fixture _fixture;
+        private readonly IUserRepository _userRepository;
+        private readonly IValidationService _validationService;
+        private readonly IMapper _mapper;
+        private readonly IWorkGroupRepository _workGroupRepository;
         private readonly UserService _userService;
 
         public UserServiceTests()
         {
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _validationServiceMock = new Mock<IValidationService>();
-            _mapper = new Mock<IMapper>();
-            _workGroupRepositoryMock = new Mock<IWorkGroupRepository>();
+            _fixture = new Fixture().FixCircularReference();
+            _userRepository = Substitute.For<IUserRepository>();
+            _validationService = Substitute.For<IValidationService>();
+            _mapper = Substitute.For<IMapper>();
+            _workGroupRepository = Substitute.For<IWorkGroupRepository>();
 
-            _userService = new UserService(
-                _userRepositoryMock.Object,
-                _mapper.Object,
-                _validationServiceMock.Object,
-                _workGroupRepositoryMock.Object);
+            _userService = new UserService(_userRepository, _mapper, _validationService, _workGroupRepository);
         }
 
         [Fact]
         public async Task RegisterUserAsync_ValidUserInfoAndWorkGroup_ShouldCallRepositoryAndSaveChanges()
         {
             // Arrange
-            var user = new RegisterUser
-            {
-                FirstName = "John",
-                LastName = "Doe",
-                MiddleName = null,
-                Login = "john@test.com",
-                Password = "Pass123",
-                WorkGroupId = 1
-            };
+            var user = _fixture.Create<RegisterUser>();
+            var userToSaveInDatabase = _fixture.Create<UserDao>();
 
-            var hmac = new HMACSHA512();
-            var userToSaveInDatabase = new User
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                MiddleName = user.MiddleName,
-                Login = user.Login,
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password)),
-                PasswordSalt = hmac.Key,
-                WorkGroupId = user.WorkGroupId
-            };
-
-            _mapper
-                .Setup(m => m.Map<User>(user))
-                .Returns(userToSaveInDatabase);
-
-            _validationServiceMock
-                .Setup(v => v.ValidateAsync(user))
-                .Returns(Task.CompletedTask);
-
-            _userRepositoryMock
-                .Setup(ur => ur.UserExistsAsync(user.Login))
-                .ReturnsAsync(false);
-
-            _workGroupRepositoryMock
-                .Setup(wg => wg.WorkGroupExistsAsync(user.WorkGroupId))
-                .ReturnsAsync(true);
+            _mapper.Map<UserDao>(user).Returns(userToSaveInDatabase);
+            _validationService.ValidateAsync(user).Returns(Task.CompletedTask);
+            _userRepository.UserExistsAsync(user.Login).Returns(false);
+            _workGroupRepository.WorkGroupExistsAsync(user.WorkGroupId).Returns(true);
 
             // Act
             await _userService.RegisterUserAsync(user);
 
             // Assert
-            _validationServiceMock.Verify(s => s.ValidateAsync(user), Times.Once);
-            _userRepositoryMock.Verify(ur => ur.UserExistsAsync(user.Login), Times.Once);
-            _workGroupRepositoryMock.Verify(wg => wg.WorkGroupExistsAsync(user.WorkGroupId), Times.Once);
-            _userRepositoryMock.Verify(ur => ur.AddUserAsync(userToSaveInDatabase), Times.Once);
-            _userRepositoryMock.Verify(ur => ur.SaveChangesAsync(), Times.Once);
+            await _validationService.Received(1).ValidateAsync(user);
+            await _userRepository.Received(1).UserExistsAsync(user.Login);
+            await _workGroupRepository.Received(1).WorkGroupExistsAsync(user.WorkGroupId);
+            await _userRepository.Received(1).AddUserAsync(userToSaveInDatabase);
+            await _userRepository.Received(1).SaveChangesAsync();
         }
 
         [Fact]
         public async Task RegisterUserAsync_InvalidUserInfo_ShouldThrowException()
         {
             // Arrange
-            var invalidUserInfo = new RegisterUser
-            {
-                FirstName = "",
-                LastName = "",
-                MiddleName = null,
-                Login = "john",
-                Password = "Pass",
-                WorkGroupId = -1
-            };
+            var invalidUserInfo = _fixture.Create<RegisterUser>();
 
-            _validationServiceMock
-                .Setup(v => v.ValidateAsync(invalidUserInfo))
-                .ThrowsAsync(new Exception("Validation failed"));
+            _validationService.ValidateAsync(invalidUserInfo).Throws(new ValidationException("Validation failed"));
 
             // Act
             Func<Task> act = async () => await _userService.RegisterUserAsync(invalidUserInfo);
 
             // Assert
-            await act.Should()
-                .ThrowAsync<Exception>()
-                .WithMessage($"Validation failed");
+            await act.Should().ThrowAsync<ValidationException>().WithMessage($"Validation failed");
 
-            _validationServiceMock.Verify(s => s.ValidateAsync(invalidUserInfo), Times.Once);
-            _userRepositoryMock.Verify(ur => ur.UserExistsAsync(It.IsAny<string>()), Times.Never);
-            _workGroupRepositoryMock.Verify(wg => wg.WorkGroupExistsAsync(It.IsAny<int>()), Times.Never);
-            _userRepositoryMock.Verify(ur => ur.AddUserAsync(It.IsAny<User>()), Times.Never);
-            _userRepositoryMock.Verify(ur => ur.SaveChangesAsync(), Times.Never);
+            await _validationService.Received(1).ValidateAsync(invalidUserInfo);
+            await _userRepository.DidNotReceive().UserExistsAsync(Arg.Any<string>());
+            await _workGroupRepository.DidNotReceive().WorkGroupExistsAsync(Arg.Any<int>());
+            await _userRepository.DidNotReceive().AddUserAsync(Arg.Any<UserDao>());
+            await _userRepository.DidNotReceive().SaveChangesAsync();
         }
 
         [Fact]
         public async Task RegisterUserAsync_ExistedUserLogin_ShouldThrowException()
         {
             // Arrange
-            var user = new RegisterUser
-            {
-                FirstName = "John",
-                LastName = "Doe",
-                MiddleName = null,
-                Login = "john@test.com",
-                Password = "Pass123",
-                WorkGroupId = 1
-            };
+            var user = _fixture.Create<RegisterUser>();
 
-            _validationServiceMock
-                .Setup(v => v.ValidateAsync(user))
-                .Returns(Task.CompletedTask);
-
-            _userRepositoryMock
-                .Setup(ur => ur.UserExistsAsync(user.Login))
-                .ReturnsAsync(true);
+            _validationService.ValidateAsync(user).Returns(Task.CompletedTask);
+            _userRepository.UserExistsAsync(user.Login).Returns(true);
 
             // Act
             Func<Task> act = async () => await _userService.RegisterUserAsync(user);
 
             // Assert
             await act.Should()
-                .ThrowAsync<ArgumentException>()
+                .ThrowAsync<BadArgumentException>()
                 .WithMessage($"User with login {user.Login} already exists.");
 
-            _validationServiceMock.Verify(s => s.ValidateAsync(user), Times.Once);
-            _userRepositoryMock.Verify(ur => ur.UserExistsAsync(user.Login), Times.Once);
-            _workGroupRepositoryMock.Verify(wg => wg.WorkGroupExistsAsync(It.IsAny<int>()), Times.Never);
-            _userRepositoryMock.Verify(ur => ur.AddUserAsync(It.IsAny<User>()), Times.Never);
-            _userRepositoryMock.Verify(ur => ur.SaveChangesAsync(), Times.Never);
+            await _validationService.Received(1).ValidateAsync(user);
+            await _userRepository.Received(1).UserExistsAsync(user.Login);
+            await _workGroupRepository.DidNotReceive().WorkGroupExistsAsync(Arg.Any<int>());
+            await _userRepository.DidNotReceive().AddUserAsync(Arg.Any<UserDao>());
+            await _userRepository.DidNotReceive().SaveChangesAsync();
         }
 
         [Fact]
         public async Task RegisterUserAsync_WorkGroupIdIsInvalid_ShouldThrowException()
         {
             // Arrange
-            var user = new RegisterUser
-            {
-                FirstName = "John",
-                LastName = "Doe",
-                MiddleName = null,
-                Login = "john@test.com",
-                Password = "Pass123",
-                WorkGroupId = 10
-            };
+            var user = _fixture.Create<RegisterUser>();
 
-            _validationServiceMock
-                .Setup(v => v.ValidateAsync(user))
-                .Returns(Task.CompletedTask);
-
-            _userRepositoryMock
-                .Setup(ur => ur.UserExistsAsync(user.Login))
-                .ReturnsAsync(false);
-
-            _workGroupRepositoryMock
-                .Setup(wg => wg.WorkGroupExistsAsync(user.WorkGroupId))
-                .ReturnsAsync(false);
+            _validationService.ValidateAsync(user).Returns(Task.CompletedTask);
+            _userRepository.UserExistsAsync(user.Login).Returns(false);
+            _workGroupRepository.WorkGroupExistsAsync(user.WorkGroupId).Returns(false);
 
             // Act
             Func<Task> act = async () => await _userService.RegisterUserAsync(user);
 
             // Assert
             await act.Should()
-                .ThrowAsync<ArgumentException>()
+                .ThrowAsync<BadArgumentException>()
                 .WithMessage($"Work group with id {user.WorkGroupId} doesn't exists");
 
-            _validationServiceMock.Verify(s => s.ValidateAsync(user), Times.Once);
-            _userRepositoryMock.Verify(ur => ur.UserExistsAsync(user.Login), Times.Once);
-            _workGroupRepositoryMock.Verify(wg => wg.WorkGroupExistsAsync(user.WorkGroupId), Times.Once);
-            _userRepositoryMock.Verify(ur => ur.AddUserAsync(It.IsAny<User>()), Times.Never);
-            _userRepositoryMock.Verify(ur => ur.SaveChangesAsync(), Times.Never);
+            await _validationService.Received(1).ValidateAsync(user);
+            await _userRepository.Received(1).UserExistsAsync(user.Login);
+            await _workGroupRepository.Received(1).WorkGroupExistsAsync(user.WorkGroupId);
+            await _userRepository.DidNotReceive().AddUserAsync(Arg.Any<UserDao>());
+            await _userRepository.DidNotReceive().SaveChangesAsync();
         }
     }
 }

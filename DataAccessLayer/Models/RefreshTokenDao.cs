@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Models
 {
-    public class RefreshToken
+    public class RefreshTokenDao
     {
         public int Id { get; set; }
 
@@ -22,6 +22,6 @@ namespace DataAccessLayer.Models
         public int UserId { get; set; }
 
         // Navigation property
-        public User User { get; set; }
+        public UserDao User { get; set; }
     }
 }

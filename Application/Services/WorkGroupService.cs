@@ -1,4 +1,5 @@
-﻿using Application.Models;
+﻿using Application.Exceptions;
+using Application.Models;
 using Application.Services.Interfaces;
 using AutoMapper;
 using DataAccessLayer.Models;
@@ -25,7 +26,7 @@ namespace Application.Services
         {
             await _validationService.ValidateAsync(workGroup);
 
-            await _workGroupRepository.InsertAsync(_mapper.Map<WorkGroup>(workGroup));
+            await _workGroupRepository.InsertAsync(_mapper.Map<WorkGroupDao>(workGroup));
 
             await _workGroupRepository.SaveChangesAsync();
         }
@@ -36,7 +37,7 @@ namespace Application.Services
 
             if (!await _workGroupRepository.WorkGroupExistsAsync(moveHrsRequest.WorkGroupId))
             {
-                throw new ArgumentException("Destination work group does not exists");
+                throw new BadArgumentException("Destination work group does not exists");
             }
 
             var hrUsers = await _userRepository.GetByIdsAsync(moveHrsRequest.UserIds);
@@ -44,7 +45,7 @@ namespace Application.Services
             var invalidUserIds = moveHrsRequest.UserIds.Except(hrUsers.Select(u => u.Id)).ToList();
             if (invalidUserIds.Any())
             {
-                throw new ArgumentException($"Invalid HR user IDs provided {string.Join(", ", invalidUserIds)}");
+                throw new BadArgumentException($"Invalid HR user IDs provided {string.Join(", ", invalidUserIds)}");
             }
 
             using var transaction = _workGroupRepository.BeginTransaction();

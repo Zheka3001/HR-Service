@@ -1,4 +1,5 @@
-﻿using Application.Models;
+﻿using Application.Exceptions;
+using Application.Models;
 using Application.Services.Interfaces;
 using AutoMapper;
 using DataAccessLayer.Models;
@@ -26,14 +27,14 @@ namespace Application.Services
             await _validationService.ValidateAsync(user);
 
             if (await _userRepository.UserExistsAsync(user.Login))
-                throw new ArgumentException($"User with login {user.Login} already exists.");
+                throw new BadArgumentException($"User with login {user.Login} already exists.");
 
             if (!await _workGroupRepository.WorkGroupExistsAsync(user.WorkGroupId))
             {
-                throw new ArgumentException($"Work group with id {user.WorkGroupId} doesn't exists");
+                throw new BadArgumentException($"Work group with id {user.WorkGroupId} doesn't exists");
             }
 
-            await _userRepository.AddUserAsync(_mapper.Map<User>(user));
+            await _userRepository.AddUserAsync(_mapper.Map<UserDao>(user));
 
             await _userRepository.SaveChangesAsync();
         }

@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccessLayer.Models
+namespace Application.Models
 {
-    public enum Role
+    public enum WorkSchedule
     {
-        Admin,
-        HR
+        Office,
+        Remote,
+        Hybrid
     }
 }

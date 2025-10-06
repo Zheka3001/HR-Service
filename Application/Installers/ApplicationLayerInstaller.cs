@@ -34,7 +34,8 @@ namespace Application.Installers
             services.AddScoped<IValidator, CreateWorkGroupValidator>();
             services.AddScoped<IValidator, MoveHrsRequestValidator>();
             services.AddScoped<IValidator, CreateApplicantRequestValidator>();
-            services.AddScoped<IValidator<CreateSocialNetworkInfoRequest>, CreateSocialNetworkInfoRequestValidator>();
+            services.AddScoped<IValidator<SocialNetwork>, SocialNetworkValidator>();
+            services.AddScoped<IValidator, UpdateApplicantRequestValidator>();
 
             services.AddScoped(
                 provider => new Lazy<IEnumerable<IValidator>>(provider.GetServices<IValidator>));

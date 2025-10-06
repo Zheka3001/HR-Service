@@ -1,4 +1,5 @@
-﻿using Application.Models;
+﻿using Application.Exceptions;
+using Application.Models;
 using Application.Services.Interfaces;
 using Configuration.Options;
 using DataAccessLayer.Models;
@@ -34,13 +35,13 @@ namespace Application.Services
             _priciplesFromTokenProvider = priciplesFromTokenProvider;
         }
 
-        public async Task<AuthTokens> GenerateTokensAsync(User user)
+        public async Task<AuthTokens> GenerateTokensAsync(UserDao user)
         {
             var accessToken = GenerateAccessToken(user);
             var refreshToken = GenerateRefreshToken();
             var refreshTokenLifetime = GetRefreshTokenExpireTime();
 
-            await _refreshTokenRepository.InsertTokenAsync(new RefreshToken
+            await _refreshTokenRepository.InsertTokenAsync(new RefreshTokenDao
             {
                 Token = refreshToken,
                 Expires = refreshTokenLifetime,
@@ -63,23 +64,23 @@ namespace Application.Services
             var principal = _priciplesFromTokenProvider.GetPrincipalFromExpiredToken(accessToken);
             if (principal == null)
             {
-                throw new ArgumentException("Access or refresh token are invalid.");
+                throw new BadArgumentException("Access or refresh token are invalid.");
             }
 
             var claimUserId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(claimUserId) || !int.TryParse(claimUserId, out var userId))
             {
-                throw new ArgumentException("Access or refresh token are invalid.");
+                throw new BadArgumentException("Access or refresh token are invalid.");
             }
 
             var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null) throw new ArgumentException("Access or refresh token are invalid.");
+            if (user == null) throw new BadArgumentException("Access or refresh token are invalid.");
 
             var savedRefreshToken = user.RefreshTokens?.FirstOrDefault(token => token.Token == refreshToken);
 
             if (savedRefreshToken == null || savedRefreshToken.IsUsed || savedRefreshToken.IsRevoked || savedRefreshToken.Expires < DateTime.UtcNow)
             {
-                throw new ArgumentException("Access or refresh token are invalid.");
+                throw new BadArgumentException("Access or refresh token are invalid.");
             }
 
             savedRefreshToken.IsUsed = true;
@@ -87,7 +88,7 @@ namespace Application.Services
             return await GenerateTokensAsync(user);
         }
 
-        private string GenerateAccessToken(User user)
+        private string GenerateAccessToken(UserDao user)
         {
             var claims = new[]
             {

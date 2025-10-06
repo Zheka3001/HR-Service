@@ -18,8 +18,8 @@ namespace WebAPI.DTOs
 
         public DateTime DateOfBirth { get; set; }
 
-        public WorkSchedule WorkSchedule { get; set; }
+        public WorkScheduleDto WorkSchedule { get; set; }
 
-        public ICollection<CreateSocialNetworkInfoRequestDto> CreateSocialNetworkRequestList { get; set; }
+        public ICollection<SocialNetworkDto> SocialNetworks { get; set; }
     }
 }
