@@ -61,7 +61,7 @@ namespace Application.Services
                     user.WorkGroupId = moveHrsRequest.WorkGroupId;
                 }
 
-                foreach (var applicant in hrUsers.SelectMany(u => u.CreatedApplicants))
+                foreach (var applicant in hrUsers.SelectMany(u => u.CreatedApplicants).Where(a => a.CreatedById == a.LastUpdatedById))
                 {
                     applicant.WorkGroupId = moveHrsRequest.WorkGroupId;
                 }
