@@ -28,7 +28,12 @@ namespace WebAPI.Controllers
 
             var applicant = await _applicantService.CreateApplicantAsync(_mapper.Map<CreateApplicantRequest>(request), userId);
 
-            return Ok(_mapper.Map<CreateApplicantResponseDto>(applicant));
+            return Ok(new
+            {
+                success = true,
+                message = "Applicant successfuly created",
+                id = userId
+            });
         }
 
         [HttpPut]
@@ -38,7 +43,11 @@ namespace WebAPI.Controllers
 
             await _applicantService.UpdateApplicantAsync(_mapper.Map<UpdateApplicantRequest>(request), userId);
 
-            return Ok();
+            return Ok(new
+            {
+                success = true,
+                message = "Applicant successfuly updated",
+            });
         }
     }
 }

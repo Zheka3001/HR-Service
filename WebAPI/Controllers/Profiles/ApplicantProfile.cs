@@ -11,8 +11,6 @@ namespace WebAPI.Controllers.Profiles
             CreateMap<CreateApplicantRequestDto, CreateApplicantRequest>();
             CreateMap<SocialNetworkDto, SocialNetwork>();
 
-            CreateMap<CreateApplicantResponse, CreateApplicantResponseDto>();
-
             CreateMap<UpdateApplicantRequestDto, UpdateApplicantRequest>();
         }
     }

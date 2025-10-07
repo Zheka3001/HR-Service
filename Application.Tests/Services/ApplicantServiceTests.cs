@@ -47,13 +47,12 @@ namespace Application.Tests.Services
             // Arrange
             var userId = 1;
             var workGroupId = 1;
+            var createdApplicantId = 1;
             var createApplicant = _fixture.Create<CreateApplicantRequest>();
             var applicantDao = _fixture.Build<ApplicantDao>()
+                .With(a => a.Id, createdApplicantId)
                 .With(a => a.WorkGroupId, workGroupId)
                 .With(a => a.CreatedById, userId)
-                .Create();
-            var applicantResponse = _fixture.Build<CreateApplicantResponse>()
-                .With(r => r.WorkGroupId, workGroupId)
                 .Create();
 
             var userDao = _fixture.Build<UserDao>()
@@ -64,17 +63,15 @@ namespace Application.Tests.Services
             _validator.ValidateAsync(createApplicant).Returns(Task.CompletedTask);
             _userRepository.GetByIdAsync(userId).Returns(userDao);
             _mapper.Map<ApplicantDao>(createApplicant).Returns(applicantDao);
-            _mapper.Map<CreateApplicantResponse>(applicantDao).Returns(applicantResponse);
             _applicantRepository.InsertAsync(applicantDao).Returns(Task.CompletedTask);
             _applicantRepository.SaveChangesAsync().Returns(Task.CompletedTask);
 
             // Act
-            var createdApplicant = await _applicantService.CreateApplicantAsync(createApplicant, userId);
+            var applicantId = await _applicantService.CreateApplicantAsync(createApplicant, userId);
 
             // Assert
-            createdApplicant.Should().NotBeNull();
+            applicantId.ShouldBe(createdApplicantId);
 
-            // Verify method interactions
             await _validator.Received(1).ValidateAsync(createApplicant);
             await _userRepository.Received(1).GetByIdAsync(userId);
             await _applicantRepository.Received(1).InsertAsync(applicantDao);
@@ -223,7 +220,7 @@ namespace Application.Tests.Services
             Func<Task> act = async () => await _applicantService.UpdateApplicantAsync(invalidUpdateUpplicantRequest, userId);
 
             // Assert
-            await act.Should().ThrowAsync<ValidationException>().WithMessage($"Validation failed"); ;
+            await act.Should().ThrowAsync<ValidationException>().WithMessage($"Validation failed");
 
             // Verify validator called
             await _validator.Received(1).ValidateAsync(invalidUpdateUpplicantRequest);

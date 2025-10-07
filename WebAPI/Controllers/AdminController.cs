@@ -26,17 +26,27 @@ namespace HRService.Controllers
         [HttpPost("register-hr")]
         public async Task<ActionResult> RegisterHRAsync(RegisterUserDto userDto)
         {
-            await _userService.RegisterUserAsync(_mapper.Map<RegisterUser>(userDto));
+            var userId = await _userService.RegisterUserAsync(_mapper.Map<RegisterUser>(userDto));
 
-            return Ok();
+            return Ok(new
+            {
+                success = true,
+                message = "Hr successfuly registered",
+                id = userId
+            });
         }
 
         [HttpPost("work-group")]
         public async Task<IActionResult> InsertWorkGroup(CreateWorkGroupDto request)
         {
-            await _workGroupService.InsertAsync(_mapper.Map<CreateWorkGroup>(request));
+            var workGroupId = await _workGroupService.AddAsync(_mapper.Map<CreateWorkGroup>(request));
 
-            return Ok();
+            return Ok(new
+            {
+                success = true,
+                message = "Work group successfuly created",
+                id = workGroupId
+            });
         }
 
         [HttpPut("work-group/{workGroupId}/hrs")]

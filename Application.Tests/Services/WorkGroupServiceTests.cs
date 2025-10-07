@@ -8,9 +8,11 @@ using AutoMapper;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories.Interfaces;
 using FluentAssertions;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore.Storage;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using Shouldly;
 using Xunit;
 
 namespace Application.Tests.Services
@@ -21,7 +23,7 @@ namespace Application.Tests.Services
         private readonly IValidationService _validationService;
         private readonly IWorkGroupRepository _workGroupRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapperMock;
+        private readonly IMapper _mapper;
         private readonly WorkGroupService _workGroupService;
 
         public WorkGroupServiceTests()
@@ -30,9 +32,55 @@ namespace Application.Tests.Services
             _validationService = Substitute.For<IValidationService>();
             _workGroupRepository = Substitute.For<IWorkGroupRepository>();
             _userRepository = Substitute.For<IUserRepository>();
-            _mapperMock = Substitute.For<IMapper>();
+            _mapper = Substitute.For<IMapper>();
 
-            _workGroupService = new WorkGroupService(_workGroupRepository, _validationService, _mapperMock, _userRepository);
+            _workGroupService = new WorkGroupService(_workGroupRepository, _validationService, _mapper, _userRepository);
+        }
+
+        [Fact]
+        public async Task AddAsync_ShouldCallRepositorySaveChangesAndReturnWorkGroupId_ForValidWorkGroupRequest()
+        {
+            // Arrange
+            var createdWorkGroupId = 1;
+            var workGroupCreateRequest = _fixture.Create<CreateWorkGroup>();
+            var workGroupDao = _fixture.Build<WorkGroupDao>()
+                .With(wg => wg.Id, createdWorkGroupId)
+                .Create();
+
+            _validationService.ValidateAsync(workGroupCreateRequest).Returns(Task.CompletedTask);
+            _mapper.Map<WorkGroupDao>(workGroupCreateRequest).Returns(workGroupDao);
+            _workGroupRepository.InsertAsync(workGroupDao).Returns(Task.CompletedTask);
+
+            // Act
+            var workGroupId = await _workGroupService.AddAsync(workGroupCreateRequest);
+
+            //Assert
+            workGroupId.ShouldBe(createdWorkGroupId);
+
+            await _validationService.Received(1).ValidateAsync(workGroupCreateRequest);
+            _mapper.Received(1).Map<WorkGroupDao>(workGroupCreateRequest);
+            await _workGroupRepository.Received(1).InsertAsync(workGroupDao);
+            await _workGroupRepository.Received(1).SaveChangesAsync();
+        }
+
+        [Fact]
+        public async Task AddAsync_ShouldThrowValidationException_ForInvalidRequest()
+        {
+            // Arrange
+            var workGroupCreateRequest = _fixture.Create<CreateWorkGroup>();
+
+            _validationService.ValidateAsync(workGroupCreateRequest).Throws(new ValidationException("Validation failed"));
+
+            // Act
+            Func<Task> act = async () => await _workGroupService.AddAsync(workGroupCreateRequest);
+
+            //Assert
+            await act.Should().ThrowAsync<ValidationException>().WithMessage($"Validation failed");
+
+            await _validationService.Received(1).ValidateAsync(workGroupCreateRequest);
+            _mapper.DidNotReceive().Map<WorkGroupDao>(Arg.Any<CreateWorkGroup>());
+            await _workGroupRepository.DidNotReceive().InsertAsync(Arg.Any<WorkGroupDao>());
+            await _workGroupRepository.DidNotReceive().SaveChangesAsync();
         }
 
         [Fact]

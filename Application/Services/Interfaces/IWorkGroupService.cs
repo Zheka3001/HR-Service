@@ -4,7 +4,7 @@ namespace Application.Services.Interfaces
 {
     public interface IWorkGroupService
     {
-        Task InsertAsync(CreateWorkGroup workGroup);
+        Task<int> AddAsync(CreateWorkGroup workGroup);
         Task MoveHrsAsync(MoveHrsRequest moveHrsRequest);
     }
 }

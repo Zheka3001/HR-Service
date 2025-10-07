@@ -22,7 +22,7 @@ namespace Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<CreateApplicantResponse> CreateApplicantAsync(CreateApplicantRequest request, int creatorId)
+        public async Task<int> CreateApplicantAsync(CreateApplicantRequest request, int creatorId)
         {
             await _validationService.ValidateAsync(request);
 
@@ -46,7 +46,7 @@ namespace Application.Services
             await _applicantRepository.InsertAsync(applicant);
             await _applicantRepository.SaveChangesAsync();
 
-            return _mapper.Map<CreateApplicantResponse>(applicant);
+            return applicant.Id;
         }
 
         public async Task UpdateApplicantAsync(UpdateApplicantRequest request, int initiatorId)

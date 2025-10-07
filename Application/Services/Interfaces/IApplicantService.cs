@@ -4,7 +4,7 @@ namespace Application.Services.Interfaces
 {
     public interface IApplicantService
     {
-        Task<CreateApplicantResponse> CreateApplicantAsync(CreateApplicantRequest request, int creatorId);
+        Task<int> CreateApplicantAsync(CreateApplicantRequest request, int creatorId);
 
         Task UpdateApplicantAsync(UpdateApplicantRequest request, int initiatorId);
     }

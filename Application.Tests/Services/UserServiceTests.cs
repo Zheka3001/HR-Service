@@ -11,6 +11,7 @@ using FluentAssertions;
 using FluentValidation;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using Shouldly;
 using Xunit;
 
 namespace Application.Tests.Services
@@ -39,8 +40,11 @@ namespace Application.Tests.Services
         public async Task RegisterUserAsync_ValidUserInfoAndWorkGroup_ShouldCallRepositoryAndSaveChanges()
         {
             // Arrange
+            var savedUserId = 1;
             var user = _fixture.Create<RegisterUser>();
-            var userToSaveInDatabase = _fixture.Create<UserDao>();
+            var userToSaveInDatabase = _fixture.Build<UserDao>()
+                .With(u => u.Id, savedUserId)
+                .Create();
 
             _mapper.Map<UserDao>(user).Returns(userToSaveInDatabase);
             _validationService.ValidateAsync(user).Returns(Task.CompletedTask);
@@ -48,9 +52,11 @@ namespace Application.Tests.Services
             _workGroupRepository.WorkGroupExistsAsync(user.WorkGroupId).Returns(true);
 
             // Act
-            await _userService.RegisterUserAsync(user);
+            var hrId = await _userService.RegisterUserAsync(user);
 
             // Assert
+            hrId.ShouldBe(savedUserId);
+
             await _validationService.Received(1).ValidateAsync(user);
             await _userRepository.Received(1).UserExistsAsync(user.Login);
             await _workGroupRepository.Received(1).WorkGroupExistsAsync(user.WorkGroupId);

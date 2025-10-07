@@ -22,7 +22,7 @@ namespace Application.Services
             _workGroupRepository = workGroupRepository;
         }
 
-        public async Task RegisterUserAsync(RegisterUser user)
+        public async Task<int> RegisterUserAsync(RegisterUser user)
         {
             await _validationService.ValidateAsync(user);
 
@@ -34,9 +34,13 @@ namespace Application.Services
                 throw new BadArgumentException($"Work group with id {user.WorkGroupId} doesn't exists");
             }
 
-            await _userRepository.AddUserAsync(_mapper.Map<UserDao>(user));
+            var userDao = _mapper.Map<UserDao>(user);
+
+            await _userRepository.AddUserAsync(userDao);
 
             await _userRepository.SaveChangesAsync();
+
+            return userDao.Id;
         }
     }
 }

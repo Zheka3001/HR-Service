@@ -22,13 +22,17 @@ namespace Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task InsertAsync(CreateWorkGroup workGroup)
+        public async Task<int> AddAsync(CreateWorkGroup workGroup)
         {
             await _validationService.ValidateAsync(workGroup);
 
-            await _workGroupRepository.InsertAsync(_mapper.Map<WorkGroupDao>(workGroup));
+            var workGroupDao = _mapper.Map<WorkGroupDao>(workGroup);
+
+            await _workGroupRepository.InsertAsync(workGroupDao);
 
             await _workGroupRepository.SaveChangesAsync();
+
+            return workGroupDao.Id;
         }
 
         public async Task MoveHrsAsync(MoveHrsRequest moveHrsRequest)
