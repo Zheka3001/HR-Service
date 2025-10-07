@@ -10,7 +10,5 @@ namespace DataAccessLayer.Repositories.Interfaces
         Task<bool> WorkGroupExistsAsync(int workGroupId);
 
         Task SaveChangesAsync();
-
-        IDbContextTransaction BeginTransaction();
     }
 }

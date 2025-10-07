@@ -16,13 +16,23 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly IApplicantRepository _applicantRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IEmployeeRepository _employeeRepository;
+        private readonly ITransactionProvider _transactionProvider;
 
-        public ApplicantService(IValidationService validationService, IMapper mapper, IApplicantRepository applicantRepository, IUserRepository userRepository)
+        public ApplicantService(
+            IValidationService validationService,
+            IMapper mapper,
+            IApplicantRepository applicantRepository,
+            IUserRepository userRepository,
+            IEmployeeRepository employeeRepository,
+            ITransactionProvider transactionProvider)
         {
             _validationService = validationService;
             _mapper = mapper;
             _applicantRepository = applicantRepository;
             _userRepository = userRepository;
+            _employeeRepository = employeeRepository;
+            _transactionProvider = transactionProvider;
         }
 
         public async Task<int> CreateApplicantAsync(CreateApplicantRequest request, int creatorId)
@@ -83,6 +93,59 @@ namespace Application.Services
             var searchResult = await _applicantRepository.SearchAsync(searchRequest);
 
             return _mapper.Map<QueryResultByCriteria<ApplicantSearchResult>>(searchResult);
+        }
+
+        public async Task<int> TransferToEmployeeAsync(int userId, int applicantId)
+        {
+            if (applicantId < 0)
+            {
+                throw new BadArgumentException("Applicant id should be positive number");
+            }
+
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new UnauthorizedException("User is not authorized or does not exist.");
+            }
+
+            var applicant = await _applicantRepository.GetByIdAsync(applicantId);
+
+            if (applicant == null)
+            {
+                throw new NotFoundException($"Applicant with id {applicantId} doesn't exists");
+            }
+
+            if (user.WorkGroupId != applicant.WorkGroupId)
+            {
+                throw new ForbidException("Prohibited action");
+            }
+
+            var employeeDao = new EmployeeDao()
+            {
+                HireDate = DateTime.UtcNow,
+                ApplicantInfoId = applicant.ApplicantInfoId
+            };
+
+            using var transaction = _transactionProvider.BeginTransaction();
+
+            try
+            {
+                await _employeeRepository.InsertAsync(employeeDao);
+                await _applicantRepository.DeleteAsync(applicantId);
+
+                await _employeeRepository.SaveChangesAsync();
+                await _applicantRepository.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+
+            return employeeDao.Id;
         }
 
         public async Task UpdateApplicantAsync(UpdateApplicantRequest request, int initiatorId)

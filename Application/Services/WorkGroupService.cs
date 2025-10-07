@@ -13,13 +13,15 @@ namespace Application.Services
         private readonly IUserRepository _userRepository;
         private readonly IValidationService _validationService;
         private readonly IMapper _mapper;
+        private readonly ITransactionProvider _transactionProvider;
 
-        public WorkGroupService(IWorkGroupRepository workGroupRepository, IValidationService validationService, IMapper mapper, IUserRepository userRepository)
+        public WorkGroupService(IWorkGroupRepository workGroupRepository, IValidationService validationService, IMapper mapper, IUserRepository userRepository, ITransactionProvider transactionProvider)
         {
             _workGroupRepository = workGroupRepository;
             _validationService = validationService;
             _mapper = mapper;
             _userRepository = userRepository;
+            _transactionProvider = transactionProvider;
         }
 
         public async Task<int> AddAsync(CreateWorkGroup workGroup)
@@ -52,7 +54,7 @@ namespace Application.Services
                 throw new BadArgumentException($"Invalid HR user IDs provided {string.Join(", ", invalidUserIds)}");
             }
 
-            using var transaction = _workGroupRepository.BeginTransaction();
+            using var transaction = _transactionProvider.BeginTransaction();
 
             try
             {

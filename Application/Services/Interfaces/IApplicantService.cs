@@ -7,6 +7,7 @@ namespace Application.Services.Interfaces
     {
         Task<int> CreateApplicantAsync(CreateApplicantRequest request, int creatorId);
         Task<QueryResultByCriteria<ApplicantSearchResult>> SearchAsync(ApplicantSearchCriteria searchCriteria, int currentUserId);
+        Task<int> TransferToEmployeeAsync(int userId, int applicantId);
         Task UpdateApplicantAsync(UpdateApplicantRequest request, int initiatorId);
     }
 }

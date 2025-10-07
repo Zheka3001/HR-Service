@@ -63,5 +63,20 @@ namespace WebAPI.Controllers
 
             return Ok(_mapper.Map<QueryResultByCriteria<ApplicantSearchResultDto>>(result));
         }
+
+        [HttpPost("{applicantId}/transfer-to-employee")]
+        public async Task<IActionResult> TransferToEmployeeAsync(int applicantId)
+        {
+            var userId = HttpContext.User.GetUserId();
+
+            var employeeId = await _applicantService.TransferToEmployeeAsync(userId, applicantId);
+
+            return Ok(new
+            {
+                employeeId,
+                success = true,
+                message = "Applicant successfully transfered to employee"
+            });
+        }
     }
 }

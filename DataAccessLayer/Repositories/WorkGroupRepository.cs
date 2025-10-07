@@ -29,10 +29,5 @@ namespace DataAccessLayer.Repositories
         {
             return await _context.WorkGroups.AnyAsync(w => w.Id == workGroupId);
         }
-
-        public IDbContextTransaction BeginTransaction()
-        {
-            return _context.Database.BeginTransaction();
-        }
     }
 }
