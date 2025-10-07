@@ -1,6 +1,7 @@
 ﻿using Application.Models;
 using AutoMapper;
 using DataAccessLayer.Models;
+using Model.Search;
 
 namespace Application.Services.Profiles
 {
@@ -29,6 +30,28 @@ namespace Application.Services.Profiles
 
             CreateMap<SocialNetwork, SocialNetworkDao>()
                 .ForMember(dest => dest.CreateDate, opt => opt.MapFrom(src => DateTime.UtcNow));
+
+
+            CreateMap<ApplicantDao, ApplicantSearchResult>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.ApplicantInfo.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.ApplicantInfo.LastName))
+                .ForMember(dest => dest.MiddleName, opt => opt.MapFrom(src => src.ApplicantInfo.MiddleName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.ApplicantInfo.Email))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.ApplicantInfo.PhoneNumber))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.ApplicantInfo.Country))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.ApplicantInfo.DateOfBirth))
+                .ForMember(dest => dest.WorkSchedule, opt => opt.MapFrom(src => src.WorkSchedule));
+
+
+            CreateMap<ApplicantSearchResultDao, QueryResultByCriteria<ApplicantSearchResult>>()
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.SearchedItems))
+                .ForMember(dest => dest.RowsPerPage, opt => opt.MapFrom(src => src.ItemsRange.PageSize))
+                .ForMember(dest => dest.TotalPages, opt => opt.MapFrom(src => src.ItemsRange.TotalPages))
+                .ForMember(dest => dest.TotalCount, opt => opt.MapFrom(src => src.ItemsRange.TotalSearchedItems))
+                .ForMember(dest => dest.PageNumber, opt => opt.MapFrom(src => src.ItemsRange.PageNumber));
+
+            CreateMap<ApplicantDao, ApplicantDao>();
         }
     }
 }

@@ -65,6 +65,12 @@ namespace DataAccessLayer.Data
                 .Property(a => a.WorkSchedule)
                 .HasConversion<string>();
 
+            modelBuilder.Entity<ApplicantDao>()
+                .HasOne(a => a.LastUpdatedBy)
+                .WithMany()
+                .HasForeignKey(a => a.LastUpdatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<ApplicantInfoDao>()
                 .HasMany(ai => ai.SocialNetworks)
                 .WithOne(sn => sn.ApplicantInfo)

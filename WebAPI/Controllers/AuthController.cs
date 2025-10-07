@@ -19,7 +19,7 @@ namespace WebAPI.Controllers
             _authService = authService;
         }
 
-        [HttpPost]
+        [HttpPost("log-in")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             var tokens = await _authService.AuthenticateAsync(_mapper.Map<LoginRequest>(request));

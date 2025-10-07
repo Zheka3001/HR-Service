@@ -1,9 +1,12 @@
-﻿using Application.Exceptions;
+﻿using Application.Constants;
+using Application.Exceptions;
+using Application.Extensions;
 using Application.Models;
 using Application.Services.Interfaces;
 using AutoMapper;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories.Interfaces;
+using Model.Search;
 
 namespace Application.Services
 {
@@ -39,7 +42,7 @@ namespace Application.Services
             }
 
             request.WorkGroupId = user.WorkGroupId;
-            request.CreatorId = creatorId;
+            request.CreatorId = request.LastUpdatedById = creatorId;
 
             var applicant = _mapper.Map<ApplicantDao>(request);
 
@@ -47,6 +50,39 @@ namespace Application.Services
             await _applicantRepository.SaveChangesAsync();
 
             return applicant.Id;
+        }
+
+        public async Task<QueryResultByCriteria<ApplicantSearchResult>> SearchAsync(ApplicantSearchCriteria searchCriteria, int currentUserId)
+        {
+            var user = await _userRepository.GetByIdAsync(currentUserId);
+
+            if (user == null)
+            {
+                throw new UnauthorizedException("User is not authorized or does not exist.");
+            }
+
+            if (user.WorkGroupId == null)
+            {
+                throw new InternalErrorException("Work group cannot be null for hrs");
+            }
+
+            var searchRequest = new ApplicantSearchRequestDao(
+                searchCriteria.Name,
+                _mapper.Map<IEnumerable<WorkScheduleDao>>(searchCriteria.WorkSchedules),
+                searchCriteria.OnlyMine,
+                user.Id,
+                user.WorkGroupId.Value,
+                new PaginationDao()
+                {
+                    PageNumber = searchCriteria.PageNumber,
+                    PageSize = searchCriteria.PageSize,
+                },
+                searchCriteria.SortByLastUpdateDate,
+                searchCriteria.SortOder);
+
+            var searchResult = await _applicantRepository.SearchAsync(searchRequest);
+
+            return _mapper.Map<QueryResultByCriteria<ApplicantSearchResult>>(searchResult);
         }
 
         public async Task UpdateApplicantAsync(UpdateApplicantRequest request, int initiatorId)
@@ -87,6 +123,7 @@ namespace Application.Services
             applicant.ApplicantInfo.DateOfBirth = request.DateOfBirth;
             applicant.ApplicantInfo.SocialNetworks = _mapper.Map<ICollection<SocialNetworkDao>>(request.SocialNetworks);
             applicant.LastUpdateDate = DateTime.UtcNow;
+            applicant.LastUpdatedById = user.Id;
 
             await _applicantRepository.SaveChangesAsync();
         }

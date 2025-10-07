@@ -24,6 +24,8 @@ namespace Application.Models
 
         public int? CreatorId { get; set; }
 
+        public int? LastUpdatedById { get; set; }
+
         public ICollection<SocialNetwork> SocialNetworks { get; set; }
     }
 }

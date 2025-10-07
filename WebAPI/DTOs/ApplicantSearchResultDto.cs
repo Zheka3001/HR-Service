@@ -1,9 +1,8 @@
 ﻿using Application.Models;
-using DataAccessLayer.Models;
 
 namespace WebAPI.DTOs
 {
-    public class UpdateApplicantRequestDto
+    public class ApplicantSearchResultDto
     {
         public int Id { get; set; }
 
@@ -22,7 +21,5 @@ namespace WebAPI.DTOs
         public DateTime DateOfBirth { get; set; }
 
         public WorkSchedule WorkSchedule { get; set; }
-
-        public ICollection<SocialNetworkDto> SocialNetworks { get; set; }
     }
 }

@@ -22,7 +22,7 @@ namespace DataAccessLayer.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("DataAccessLayer.Models.Applicant", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.ApplicantDao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -39,6 +39,9 @@ namespace DataAccessLayer.Migrations
                     b.Property<DateTime>("LastUpdateDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("LastUpdatedById")
+                        .HasColumnType("int");
+
                     b.Property<int>("WorkGroupId")
                         .HasColumnType("int");
 
@@ -52,12 +55,14 @@ namespace DataAccessLayer.Migrations
 
                     b.HasIndex("CreatedById");
 
+                    b.HasIndex("LastUpdatedById");
+
                     b.HasIndex("WorkGroupId");
 
                     b.ToTable("applicants", (string)null);
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.ApplicantInfo", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.ApplicantInfoDao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -96,7 +101,7 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("applicant_infos", (string)null);
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.Employee", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.EmployeeDao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -117,7 +122,7 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("employees", (string)null);
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.RefreshToken", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.RefreshTokenDao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -148,7 +153,7 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("refresh_tokens", (string)null);
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.SocialNetwork", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.SocialNetworkDao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -177,7 +182,7 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("social_networks", (string)null);
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.User", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.UserDao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -225,7 +230,7 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.WorkGroup", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.WorkGroupDao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -242,21 +247,27 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("work_groups", (string)null);
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.Applicant", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.ApplicantDao", b =>
                 {
-                    b.HasOne("DataAccessLayer.Models.ApplicantInfo", "ApplicantInfo")
+                    b.HasOne("DataAccessLayer.Models.ApplicantInfoDao", "ApplicantInfo")
                         .WithMany()
                         .HasForeignKey("ApplicantInfoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DataAccessLayer.Models.User", "CreatedBy")
+                    b.HasOne("DataAccessLayer.Models.UserDao", "CreatedBy")
                         .WithMany("CreatedApplicants")
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("DataAccessLayer.Models.WorkGroup", "WorkGroup")
+                    b.HasOne("DataAccessLayer.Models.UserDao", "LastUpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("LastUpdatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessLayer.Models.WorkGroupDao", "WorkGroup")
                         .WithMany("Applicants")
                         .HasForeignKey("WorkGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -266,12 +277,14 @@ namespace DataAccessLayer.Migrations
 
                     b.Navigation("CreatedBy");
 
+                    b.Navigation("LastUpdatedBy");
+
                     b.Navigation("WorkGroup");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.Employee", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.EmployeeDao", b =>
                 {
-                    b.HasOne("DataAccessLayer.Models.ApplicantInfo", "ApplicantInfo")
+                    b.HasOne("DataAccessLayer.Models.ApplicantInfoDao", "ApplicantInfo")
                         .WithMany()
                         .HasForeignKey("ApplicantInfoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -280,9 +293,9 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("ApplicantInfo");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.RefreshToken", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.RefreshTokenDao", b =>
                 {
-                    b.HasOne("DataAccessLayer.Models.User", "User")
+                    b.HasOne("DataAccessLayer.Models.UserDao", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -291,9 +304,9 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.SocialNetwork", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.SocialNetworkDao", b =>
                 {
-                    b.HasOne("DataAccessLayer.Models.ApplicantInfo", "ApplicantInfo")
+                    b.HasOne("DataAccessLayer.Models.ApplicantInfoDao", "ApplicantInfo")
                         .WithMany("SocialNetworks")
                         .HasForeignKey("ApplicantInfoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -302,28 +315,28 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("ApplicantInfo");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.User", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.UserDao", b =>
                 {
-                    b.HasOne("DataAccessLayer.Models.WorkGroup", "WorkGroup")
+                    b.HasOne("DataAccessLayer.Models.WorkGroupDao", "WorkGroup")
                         .WithMany("Users")
                         .HasForeignKey("WorkGroupId");
 
                     b.Navigation("WorkGroup");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.ApplicantInfo", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.ApplicantInfoDao", b =>
                 {
                     b.Navigation("SocialNetworks");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.User", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.UserDao", b =>
                 {
                     b.Navigation("CreatedApplicants");
 
                     b.Navigation("RefreshTokens");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.WorkGroup", b =>
+            modelBuilder.Entity("DataAccessLayer.Models.WorkGroupDao", b =>
                 {
                     b.Navigation("Applicants");
 

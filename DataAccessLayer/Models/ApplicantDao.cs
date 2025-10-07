@@ -17,5 +17,9 @@
 
         public int CreatedById { get; set; }
         public UserDao CreatedBy { get; set; }
+
+        public int LastUpdatedById { get; set; }
+
+        public UserDao LastUpdatedBy { get; set; }
     }
 }

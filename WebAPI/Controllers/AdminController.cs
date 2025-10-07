@@ -36,7 +36,7 @@ namespace HRService.Controllers
             });
         }
 
-        [HttpPost("work-group")]
+        [HttpPost("work-group/create")]
         public async Task<IActionResult> InsertWorkGroup(CreateWorkGroupDto request)
         {
             var workGroupId = await _workGroupService.AddAsync(_mapper.Map<CreateWorkGroup>(request));

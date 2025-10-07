@@ -9,5 +9,7 @@ namespace DataAccessLayer.Repositories.Interfaces
         Task<ApplicantDao?> GetByIdAsync(int id);
 
         Task SaveChangesAsync();
+
+        Task<ApplicantSearchResultDao> SearchAsync(ApplicantSearchRequestDao searchRequest);
     }
 }

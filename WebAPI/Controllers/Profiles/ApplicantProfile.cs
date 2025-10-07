@@ -1,5 +1,7 @@
 ﻿using Application.Models;
 using AutoMapper;
+using DataAccessLayer.Models;
+using Model.Search;
 using WebAPI.DTOs;
 
 namespace WebAPI.Controllers.Profiles
@@ -12,6 +14,10 @@ namespace WebAPI.Controllers.Profiles
             CreateMap<SocialNetworkDto, SocialNetwork>();
 
             CreateMap<UpdateApplicantRequestDto, UpdateApplicantRequest>();
+
+            CreateMap<ApplicantSearchResult, ApplicantSearchResultDto>();
+
+            CreateMap<QueryResultByCriteria<ApplicantSearchResult>, QueryResultByCriteria<ApplicantSearchResultDto>>();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using DataAccessLayer.Models;
+﻿using Application.Models;
+using DataAccessLayer.Models;
 
 namespace WebAPI.DTOs
 {
@@ -18,7 +19,7 @@ namespace WebAPI.DTOs
 
         public DateTime DateOfBirth { get; set; }
 
-        public WorkScheduleDto WorkSchedule { get; set; }
+        public WorkSchedule WorkSchedule { get; set; }
 
         public ICollection<SocialNetworkDto> SocialNetworks { get; set; }
     }
