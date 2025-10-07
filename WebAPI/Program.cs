@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WebAPI.Extensions;
+using WebAPI.Middlewares;
 
 namespace HRService
 {
@@ -59,6 +60,8 @@ namespace HRService
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            app.UseMiddleware<ExceptionMiddleware>();
 
             // Seed database
             app.SeedDatabase();
