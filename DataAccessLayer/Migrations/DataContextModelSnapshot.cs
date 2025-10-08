@@ -101,6 +101,56 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("applicant_infos", (string)null);
                 });
 
+            modelBuilder.Entity("DataAccessLayer.Models.CheckDao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("InitiationDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("InitiatorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SearchName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InitiatorId");
+
+                    b.ToTable("checks", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.CheckEventDao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CheckId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CheckId");
+
+                    b.ToTable("check_events", (string)null);
+                });
+
             modelBuilder.Entity("DataAccessLayer.Models.EmployeeDao", b =>
                 {
                     b.Property<int>("Id")
@@ -282,6 +332,28 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("WorkGroup");
                 });
 
+            modelBuilder.Entity("DataAccessLayer.Models.CheckDao", b =>
+                {
+                    b.HasOne("DataAccessLayer.Models.UserDao", "Initiator")
+                        .WithMany()
+                        .HasForeignKey("InitiatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Initiator");
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.CheckEventDao", b =>
+                {
+                    b.HasOne("DataAccessLayer.Models.CheckDao", "Check")
+                        .WithMany("CheckEvents")
+                        .HasForeignKey("CheckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Check");
+                });
+
             modelBuilder.Entity("DataAccessLayer.Models.EmployeeDao", b =>
                 {
                     b.HasOne("DataAccessLayer.Models.ApplicantInfoDao", "ApplicantInfo")
@@ -327,6 +399,11 @@ namespace DataAccessLayer.Migrations
             modelBuilder.Entity("DataAccessLayer.Models.ApplicantInfoDao", b =>
                 {
                     b.Navigation("SocialNetworks");
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Models.CheckDao", b =>
+                {
+                    b.Navigation("CheckEvents");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Models.UserDao", b =>

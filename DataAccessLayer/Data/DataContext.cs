@@ -18,6 +18,8 @@ namespace DataAccessLayer.Data
         public DbSet<ApplicantInfoDao> ApplicantInfos { get; set; }
         public DbSet<EmployeeDao> Employees { get; set; }
         public DbSet<SocialNetworkDao> SocialNetworks { get; set; }
+        public DbSet<CheckDao> Checks { get; set; }
+        public DbSet<CheckEventDao> CheckEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -83,6 +85,21 @@ namespace DataAccessLayer.Data
 
             modelBuilder.Entity<SocialNetworkDao>()
                 .Property(sn => sn.Type)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<CheckDao>()
+                .HasMany(c => c.CheckEvents)
+                .WithOne(ce => ce.Check)
+                .HasForeignKey(ce => ce.CheckId);
+
+            modelBuilder.Entity<CheckDao>()
+                .HasOne(a => a.Initiator)
+                .WithMany()
+                .HasForeignKey(a => a.InitiatorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CheckEventDao>()
+                .Property(ce => ce.Type)
                 .HasConversion<string>();
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
