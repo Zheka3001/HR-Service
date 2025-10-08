@@ -59,6 +59,13 @@ namespace HRService
             // Add services to the container.
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            // Add health checks
+            builder.Services.AddHealthChecks()
+                .AddMySql(
+                    connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
+                    name: "HR Database",
+                    failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy);
+
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
