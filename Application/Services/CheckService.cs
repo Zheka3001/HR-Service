@@ -1,4 +1,5 @@
 ﻿using Application.Exceptions;
+using Application.Models;
 using Application.Services.Interfaces;
 using DataAccessLayer.Models;
 using DataAccessLayer.Repositories.Interfaces;
@@ -17,6 +18,29 @@ namespace Application.Services
             _checkRepository = checkRepository;
             _userRepository = userRepository;
             _serviceScopeFactory = serviceScopeFactory;
+        }
+
+        public async Task<CheckResult> GetCheckResultsAsync(int checkId)
+        {
+            var check = await _checkRepository.GetByIdAsync(checkId);
+
+            if (check == null)
+            {
+                throw new NotFoundException($"Check with id {checkId} was not found.");
+            }
+
+            return new CheckResult
+            {
+                SearchName = check.SearchName,
+                InitiatorId = check.InitiatorId,
+                InitiationDate = check.InitiationDate,
+                Results = check.CheckEvents
+                    .GroupBy(ch => ch.Type)
+                    .ToDictionary(
+                        g => (CheckEventType)g.Key,
+                        g => g.Select(e => e.EntityId).ToList()
+                        )
+            };
         }
 
         public async Task<int> StartCheckAsync(string fullName, int initiatorId)
@@ -49,8 +73,6 @@ namespace Application.Services
             var scopedApplicantRepository = scope.ServiceProvider.GetRequiredService<IApplicantRepository>();
             var scopedCheckRepository = scope.ServiceProvider.GetRequiredService<ICheckRepository>();
 
-            await Task.Delay(3000);
-
             var result = await scopedApplicantRepository.SearchApplicantsByFullNameAsync(fullName);
 
             if (result == null) return;
@@ -71,8 +93,6 @@ namespace Application.Services
             using var scope = _serviceScopeFactory.CreateScope();
             var scopedEmployeeRepository = scope.ServiceProvider.GetRequiredService<IEmployeeRepository>();
             var scopedCheckRepository = scope.ServiceProvider.GetRequiredService<ICheckRepository>();
-
-            await Task.Delay(5000);
 
             var result = await scopedEmployeeRepository.SearchEmployeesByFullNameAsync(fullName);
 

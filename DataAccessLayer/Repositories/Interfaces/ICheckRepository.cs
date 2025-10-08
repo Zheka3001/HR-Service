@@ -9,5 +9,6 @@ namespace DataAccessLayer.Repositories.Interfaces
         Task SaveChangesAsync();
 
         Task AddCheckEventsAsync(IEnumerable<CheckEventDao> checkEvents);
+        Task<CheckDao?> GetByIdAsync(int checkId);
     }
 }
