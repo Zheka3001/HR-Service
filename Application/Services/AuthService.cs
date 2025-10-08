@@ -43,7 +43,7 @@ namespace Application.Services
         {
             if (user == null)
             {
-                throw new UnauthorizedException("Invalid login or password");
+                throw new BadArgumentException("Invalid login or password");
             }
 
             using var hmac = new HMACSHA512(user.PasswordSalt);
@@ -52,7 +52,7 @@ namespace Application.Services
 
             for (var i = 0; i < computedHash.Length; i++)
             {
-                if (computedHash[i] != user.PasswordHash[i]) throw new UnauthorizedException("Invalid login or password");
+                if (computedHash[i] != user.PasswordHash[i]) throw new BadArgumentException("Invalid login or password");
             }
 
         }

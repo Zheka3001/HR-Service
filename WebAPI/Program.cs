@@ -69,6 +69,8 @@ namespace HRService
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
+                options.EnableAnnotations();
+
                 options.MapType<WorkSchedule>(() => new Microsoft.OpenApi.Models.OpenApiSchema
                 {
                     Type = "string",
