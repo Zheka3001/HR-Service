@@ -34,12 +34,27 @@ namespace DataAccessLayer.Repositories
 
         public async Task InsertAsync(ApplicantDao applicant)
         {
-            await _context.AddAsync(applicant);
+            await _context.Applicants.AddAsync(applicant);
         }
 
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<int>> SearchApplicantsByFullNameAsync(string fullName)
+        {
+            var lowerFullName = fullName.ToLower();
+
+
+            var result = await _context.Applicants
+            .Include(a => a.ApplicantInfo)
+            .Where(a =>
+                (a.ApplicantInfo.FirstName + " " + a.ApplicantInfo.LastName + " " + (a.ApplicantInfo.MiddleName ?? "")).TrimEnd().ToLower().Contains(lowerFullName))
+            .Select(a => a.Id)
+            .ToListAsync();
+
+            return result;
         }
 
         public async Task<ApplicantSearchResultDao> SearchAsync(ApplicantSearchRequestDao searchRequest)

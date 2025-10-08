@@ -6,6 +6,8 @@ namespace DataAccessLayer.Repositories.Interfaces
     {
         Task InsertAsync(EmployeeDao employee);
 
+        Task<List<int>> SearchEmployeesByFullNameAsync(string fullName);
+
         Task SaveChangesAsync();
     }
 }

@@ -1,5 +1,4 @@
 ﻿using DataAccessLayer.Models;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace DataAccessLayer.Repositories.Interfaces
 {
@@ -12,6 +11,8 @@ namespace DataAccessLayer.Repositories.Interfaces
         Task SaveChangesAsync();
 
         Task<ApplicantSearchResultDao> SearchAsync(ApplicantSearchRequestDao searchRequest);
+
+        Task<List<int>> SearchApplicantsByFullNameAsync(string fullName);
 
         Task DeleteAsync(int applicantId);
     }

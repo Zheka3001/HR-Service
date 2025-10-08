@@ -1,9 +1,4 @@
 ﻿using DataAccessLayer.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccessLayer.Repositories.Interfaces
 {
@@ -16,6 +11,8 @@ namespace DataAccessLayer.Repositories.Interfaces
         Task<List<UserDao>> GetByIdsAsync(IEnumerable<int> userIds);
 
         Task<bool> UserExistsAsync(string email);
+
+        Task<bool> UserExistsAsync(int id);
 
         Task AddUserAsync(UserDao user);
 

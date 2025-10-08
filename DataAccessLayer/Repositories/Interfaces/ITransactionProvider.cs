@@ -4,6 +4,6 @@ namespace DataAccessLayer.Repositories.Interfaces
 {
     public interface ITransactionProvider
     {
-        IDbContextTransaction BeginTransaction();
+        Task<IDbContextTransaction> BeginTransactionAsync();
     }
 }

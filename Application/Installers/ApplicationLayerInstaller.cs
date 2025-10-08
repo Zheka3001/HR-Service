@@ -19,6 +19,7 @@ namespace Application.Installers
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IPriciplesFromTokenProvider, PriciplesFromTokenProvider>();
             services.AddScoped<IApplicantService, ApplicantService>();
+            services.AddScoped<ICheckService, CheckService>();
 
             services.AddSingleton<JwtSecurityTokenHandler>();
 

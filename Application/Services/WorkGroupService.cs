@@ -54,7 +54,7 @@ namespace Application.Services
                 throw new BadArgumentException($"Invalid HR user IDs provided {string.Join(", ", invalidUserIds)}");
             }
 
-            using var transaction = _transactionProvider.BeginTransaction();
+            using var transaction = await _transactionProvider.BeginTransactionAsync();
 
             try
             {

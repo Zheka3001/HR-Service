@@ -13,6 +13,7 @@ namespace DataAccessLayer.Installers
             services.AddScoped<IWorkGroupRepository, WorkGroupRepository>();
             services.AddScoped<IApplicantRepository, ApplicantRepository>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<ICheckRepository, CheckRepository>();
 
             services.AddScoped<ITransactionProvider, TransactionProvider>();
         }

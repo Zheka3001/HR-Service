@@ -127,7 +127,7 @@ namespace Application.Services
                 ApplicantInfoId = applicant.ApplicantInfoId
             };
 
-            using var transaction = _transactionProvider.BeginTransaction();
+            using var transaction = await _transactionProvider.BeginTransactionAsync();
 
             try
             {

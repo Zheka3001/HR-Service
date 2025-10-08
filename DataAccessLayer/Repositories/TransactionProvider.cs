@@ -13,9 +13,9 @@ namespace DataAccessLayer.Repositories
             _context = context;
         }
 
-        public IDbContextTransaction BeginTransaction()
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
-            return _context.Database.BeginTransaction();
+            return await _context.Database.BeginTransactionAsync();
         }
     }
 }
